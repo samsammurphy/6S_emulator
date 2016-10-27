@@ -65,6 +65,7 @@ The options are:
 * {--flags} = must pick one!
 
 ..where:
+
 BB = BiomassBurning, CO = Continental, DE = Desert, MA = Maritime, NO = NoAerosols, UR = Urban
 
 --test = incomplete selection of input parameters (NOT for atmospheric correction, just for a 'quick' test)

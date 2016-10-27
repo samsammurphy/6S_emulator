@@ -39,53 +39,61 @@ In [1] Edir, Edif, tau2, Lp = iLUT(solar_z,H2O,O3,AOT,alt)
 
 ### How do I calculate surface reflectance?
 
-surface reflectance (rho) can be calculated from at-sensor radiance (L) using this equation:
+surface reflectance (ref) can be calculated from at-sensor radiance (L) using this equation:
 
-rho = pi * (L - Lp) / tau2 * (Edir + Edif)
+```
+In [2] ref = (math.pi*(L-Lp))/(tau2*(Edir+Edif))
+```
 
 
 ### Building a LUT
 
-This package comes with a few LUTs pre-installed. This is because building a LUT can take several hours! It is not necessary to create a new LUT for a demo. However, if you would like to a build a LUT from scratch here is the syntax:
+This repo comes with a few LUTs already for demonstration purposes. If you would like to a build a LUT from scratch here is the syntax:
 
+```
 $ python3 LUT_build.py {satellite_sensor} {aerosol_profile} {view_zenith} {--test,--full,--validation}
+```
 
 The options are:
 
-{satellite_sensor} = 'LANDSAT_TM','LANDSAT_ETM','LANDSAT_OLI' or 'ASTER'
+* {satellite_sensor} = LANDSAT_TM, LANDSAT_ETM, LANDSAT_OLI or ASTER
 
-{aerosol_profile} = 'BB','CO','DE','MA','NO' or 'UR'
-  ..where..
-  'BB' = BiomassBurning,
-  'CO' = Continental,
-  'DE' = Desert,
-  'MA' = Maritime,
-  'NO' = NoAerosols,
-  'UR' = Urban
+* {aerosol_profile} = BB, CO, DE, MA, NO or UR
 
-{view_zenith} = integer value for view zenith of sensor in degrees (typically = 0)
+* {view_zenith} = integer value for view zenith of sensor in degrees (typically = 0)
 
-{--flags} = must pick one!
-  --test = incomplete selection of input parameters (NOT for atmospheric correction, just for a 'quick' test)
-  --full = complete selection of input parameters. Outputs are used for atmospheric correction. Might take several hours (i.e. it takes 9 hours on my machine).
-  --validation = (advanced) a selection of input parameters that are used for validation
+* {--flags} = must pick one!
 
-NOTE: As building LUTs takes a long time this module will NOT overwrite existing LUTs
+..where:
+BB = BiomassBurning, CO = Continental, DE = Desert, MA = Maritime, NO = NoAerosols, UR = Urban
 
-EXAMPLE: To create a lookup tabe not supplied here, e.g. for LANDSAT 8's OLI sensor using an urban aerosol model, you could run the following command:
+--test = incomplete selection of input parameters (NOT for atmospheric correction, just for a 'quick' test)
 
+--full = complete selection of input parameters. Outputs are used for atmospheric correction. Might take several hours (i.e. it takes 9 hours on my machine).
+
+--validation = (advanced) a selection of input parameters that are used for validation
+
+***NOTE***: As building LUTs takes a long time this module will NOT overwrite existing LUTs
+
+***EXAMPLE***: To create a lookup tabe not supplied here, e.g. for LANDSAT 8's OLI sensor using an urban aerosol model, you could run the following command:
+
+```
 $ python3 LUT_build.py LANDSAT_OLI UR 0 --test
+```
 
 ### Interpolating a LUT
 
 The general syntax is:
 
+```
 $ python3 LUT_interpolate.py {satellite_sensor} {aerosol_profile} {view_zenith}
+```
 
 Let's interpolate one of the LUTs supplied with this repo
 
+```
 $ python3 LUT_interpolate.py LANDSAT_OLI MA 0
-
+```
 
 
 

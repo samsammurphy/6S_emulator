@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-# This file is part of an atmospheric correction demonstration using
-# Py6s (a Python wrapper for the 6S radiative transfer code)
-#
 """
 LUT_build
 _______________________________________________________________________________
@@ -17,7 +13,7 @@ Usage
 
 runs at the command using the following syntax
 
-$ python3 LUT_build.py {sensor} {aeroprofile}
+$ python3 LUT_build.py {sensor} {aerosol_profile}
 
 For example, to create LUTs for the Landsat 8 OLI sensor using
 a continental aerosol profile:
@@ -25,44 +21,19 @@ a continental aerosol profile:
 $ python3 LUT_build.py LANDSAT_OLI CO
 
 
-Atmospheric Correction equation
--------------------------------
+Output
+------
 
-rho = pi * (L - Lp) / tau2 * (Edir + Edif)
+This module saves a lookup table separately for each waveband into
+a '.lut' file.
 
-rho  = surface reflectance
-pi   = 3.14159..
-L    = at-sensor radiance
-Lp   = path radiance
-tau2 = transmissivity from target to sensor
-Edir = direct solar irradiance
-Edif = diffuse solar irradiance
+It will create the following path from the current working direcotry:
 
-Essentially the atmospheric correction procedure aims to find the value
-of Lp, tau2, Edir and Edif for the end-user and apply them to at-sensor
-radiance to return surface reflectance.
+./LUTs/{sensor}_{aerosol_profile}/viewz_{view_zenith}
 
-NB. Lambertian reflectance is tacitly assumed in the above equation. This is
-reasonable for most satellite imagery because view zentith angles are typically
-close to NADIR (i.e. within 30 degress). 
+So, for example, the above build would be saved to:
 
-
-File organization
------------------
-
-Will create a /LUT subdirectory inside of the current working directory 
-and save output files there. The output files have a '.lut' file extension.
-
-A separate .lut file is created for each VSWIR waveband of the chosen
-sensor (i.e. 6S does not support TIR wavelengths. NB. even if it did,
-atmcorr in these wavelengths is sensitive to the temperature profile
-of the atmosphere, this profile is typically not well constrained)
-
-The filename will end with '_0.lut' in this demo. The zero represents the 
-view zenith angle in degrees. It signifies that non-zero angles WILL BE
-supported. This will allow atmospheric correction of imagery from instruments 
-that can point or roll, e.g. ASTER and Landsat 8, or that have a large 
-field of view, e.g. MODIS).
+./LUTs/LANDSAT_OLI_MA/viewz_0
 
 """
 

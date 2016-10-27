@@ -11,8 +11,7 @@ A key contribution in this repo is the use of interpolated look-up tables (iLUTs
 
 ### What are iLUTs? 
 
-
-It helps to first consider a normal lookup table (LUT). We could run Py6S a whole bunch of times and record both the input and output values in a LUT. Then, later on, we could use a given set of input values to rapidly look up the output values. The problem with this is that the input and output values are limited to discrete values but in real life they are continuous. After creating a LUT we therefore interpolate it in n-dimensional space so that we can use continuous inputs and to get continuous outputs.
+It helps to first consider a normal lookup table (LUT). We could run Py6S a whole bunch of times and record both the input and output values in a LUT. Then, later on, we could use a given set of input values to rapidly look up the output values. The problem with a LUT, however, is that the input and output values are discrete whilst in real life they are continuous. After creating a LUT we therefore interpolate it in n-dimensional space so that we can use continuous inputs and to get continuous outputs. 
 
 ### How do I use an iLUT?
 

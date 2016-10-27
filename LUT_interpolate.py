@@ -72,21 +72,25 @@ def main():
   
   args = sys.argv[1:]
   
-  if len(args) != 1:
-    print('usage: $ python3 LUT_interpolation.py luts_path')
+  if len(args) != 3:
+    print('usage: $ python3 LUT_interpolation.py  sensor aerosol_profile view_zenith')
     sys.exit(1)
   else:
     lut_path = args[0]
-
-  #create outdir (use regular expressions to rename ../LUT/.. to ../iLUT/..)
-  s = re.search('/LUTs/',lut_path)
-  base_path = lut_path[:s.start()]
-  satellite_config = lut_path[s.end():]
-  ilut_path = base_path+'/iLUTs/'+satellite_config
-  if not os.path.exists(ilut_path):
-    os.makedirs(ilut_path)
+    
+  # configuration
+  config = {
+  'sensor':args[0],
+  'aeroprofile':args[1],
+  'view_z':int(args[2]),
+  }
   
-  # find LUT files
+  # I/O
+  base_path = os.path.dirname(os.path.abspath(__file__))
+  config_path = '{0[sensor]}_{0[aeroprofile]}/viewz_{0[view_z]}'.format(config)
+  lut_path  = os.path.join(base_path,'LUTs',config_path)
+  ilut_path = os.path.join(base_path,'iLUTs',config_path)
+
   try:
     os.chdir(lut_path)
   except:
@@ -98,6 +102,9 @@ def main():
     print('could not find .lut files in path: ' + lut_path)
     sys.exit(1)
   
+  if not os.path.exists(ilut_path):
+    os.makedirs(ilut_path)
+    
   # interpolate LUT files
   for fname in fnames:
     

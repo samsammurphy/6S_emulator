@@ -255,7 +255,7 @@ def main():
   args = sys.argv[1:]
   
   if len(args) != 4:
-    print('usage: $ python3 LUT_build.py sensor aeroprofile view_z build_type')
+    print('usage: $ python3 LUT_build.py sensor aerosol_profile view_zenith build_type')
     sys.exit(1)
 
   # configuration

@@ -6,7 +6,7 @@ The code runs the 6S radiative transfer code in Fortran under the hood. The 6S c
 
 Interaction with 6S is achieved through a Python wrapper called [Py6S](http://py6s.readthedocs.io/en/latest/introduction.html). The wrapper supports all the functionality of the original 6S code (and more!)
  
-A key contribution in this repo is the use of interpolated look-up tables (iLUTs) to speed up Py6S.
+A key contribution in this repo is the use of interpolated look-up tables (iLUTs) to speed up 6S.
 
 
 ### What are iLUTs? 

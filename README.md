@@ -68,13 +68,11 @@ The options are:
 
 BB = BiomassBurning, CO = Continental, DE = Desert, MA = Maritime, NO = NoAerosols, UR = Urban
 
---test = incomplete selection of input parameters (NOT for atmospheric correction, just for a 'quick' test)
+--full = Complete selection of input parameters. Outputs used in atmospheric correction. ***This might take several hours to execute*** (but you only need to do it once, ever).
 
---full = complete selection of input parameters. Outputs are used for atmospheric correction. Might take several hours (i.e. it takes 9 hours on my machine).
+--test = NOT for atmospheric correction, just for a 'quick' test
 
 --validation = (advanced) a selection of input parameters that are used for validation
-
-***NOTE***: As building LUTs takes a long time this module will NOT overwrite existing LUTs
 
 ***EXAMPLE***: To create a lookup tabe not supplied here, e.g. for LANDSAT 8's OLI sensor using an urban aerosol model, you could run the following command:
 

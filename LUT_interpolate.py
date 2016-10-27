@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-# This file is part of an atmospheric correction demonstration using
-# Py6s (a Python wrapper for the 6S radiative transfer code)
-#
-
 """
 LUT interpolate
 
@@ -26,7 +21,7 @@ from scipy.interpolate import LinearNDInterpolator
 
 def create_interpolator(filename):
   """
-  Loads an LUT file and creates an interpolated LUT object.
+  Loads a LUT file and creates an interpolated LUT object.
   The interpolant is constructed by triangulating the input data with Qhull
   and performing linear barycentric interpolation on each triangle
   

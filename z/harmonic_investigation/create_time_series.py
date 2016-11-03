@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
 """
+create_time_series.py, Sam Murphy (2016-11-03)
 
-Time series of Edir, Edif and Lp might be well defined by a simple harmonic
+This is part of the 'harmonic investigation'. Essentially, it seems that critical
+atmospheric correction parameters (Edir, Edif and Lp) can be well defined using
+a simple harmonic function.
 
 x = a.cos(doy / (b.pi)) + c
 
-________________________________________________________________________
-Do the coefficients (a,b,c) vary with any of the following, and if so how?
-________________________________________________________________________
+To test/demonstrate this I ran 6S (via Py6S) for a parameter space that include:
+  - Landsat8, B2-B7 (i.e. from blue to swir2)
+  - Continental and Maritime aerosol models
+  - min, middle, max values for:
+    * solar zenith
+    * view zenith
+    * water vapour column
+    * ozone
+    * aerosol optical thickness
+    * altitude
 
-1) x variables (i.e. Edir, Edif, Lp)
-2) wavelength
-3) atmospheric profile
-4) aerosol profile
-5) solar zenith, view zenith
-6) H2O, O3
-7) AOT
-8) altitude
-________________________________________________________________________
-
-
-To do this I will create and save a whole bunch of time series.
-
-They will be analyzed in 'harmonic_investigation.py'
 """
 
 from Py6S import *
@@ -49,12 +45,12 @@ def define_parameter_space():
   ('swir2',PredefinedWavelengths.LANDSAT_OLI_B7)
   ]
   aeros = [('CO',AeroProfile.Continental),('MA',AeroProfile.Maritime)]
-  solar_zs = [0,30,60]
-  view_zs = [0,30,60]
-  H2Os = [0,4,8]
-  O3s  = [0,0.4,0.8]
-  AOTs = [0,1.5,3]
-  alts = [0,3,6]
+  solar_zs = [0,30,60] # solar zenith
+  view_zs = [0,30,60]  # view zenith
+  H2Os = [0,4,8]       # water vapour column
+  O3s  = [0,0.4,0.8]   # ozone
+  AOTs = [0,1.5,3]     # aerosol optical thickness
+  alts = [0,3,6]       # altitude
   
   # parameter list
   params = {'bands':bands,'aeros':aeros,'solar_zs':solar_zs,'view_zs':view_zs,

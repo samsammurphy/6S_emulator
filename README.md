@@ -6,13 +6,12 @@ The code runs the 6S radiative transfer code in Fortran under the hood. The 6S c
 
 Interaction with 6S is achieved through a Python wrapper called [Py6S](http://py6s.readthedocs.io/en/latest/introduction.html). The wrapper supports all the functionality of the original 6S code (and more!)
  
-A key contribution in this repo is the use of interpolated look-up tables (iLUTs) to speed up Py6S.
+A key contribution in this repo is the use of interpolated look-up tables (iLUTs) to speed up 6S.
 
 
 ### What are iLUTs? 
 
-
-It helps to first consider a normal lookup table (LUT). We could run Py6S a whole bunch of times and record both the input and output values in a LUT. Then, later on, we could use a given set of input values to rapidly look up the output values. The problem with this is that the input and output values are limited to discrete values but in real life they are continuous. After creating a LUT we therefore interpolate it in n-dimensional space so that we can use continuous inputs and to get continuous outputs.
+It helps to first consider a normal lookup table (LUT). We could run Py6S a whole bunch of times and record both the input and output values in a LUT. Then, later on, we could use a given set of input values to rapidly look up the output values. The problem with a LUT, however, is that the input and output values are discrete whilst in real life they are continuous. After creating a LUT we therefore interpolate it in n-dimensional space so that we can use continuous inputs and to get continuous outputs. 
 
 ### How do I use an iLUT?
 

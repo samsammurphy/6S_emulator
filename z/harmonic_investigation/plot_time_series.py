@@ -29,7 +29,7 @@ Edif = f(doy)
 Lp   = f(doy)
 
 Which is a more convenient way of looking at the problem because we can run the
-radiative transfer code once and then modify it.
+radiative transfer code once and then modify the output accordindgly.
 
 Here we will investigate if a simple harmonic can be used to fit x = f(doy)
 
@@ -38,15 +38,14 @@ x = a.cos(doy / (b.pi)) + c
 where x is normalized (Edir or Edif or Lp). The advantage of normalizing
 is twofold
 
-1) it allows comparison of the different atmospheric conditions 
-(does the function at least have the same shape? answer = yes)
-
-2) the normalized function is the correction coefficient required to convert
+1) the normalized function IS the correction coefficient required to convert
 Edir, Edif and Lp at perihelion (i.e. as in the LUTs) to their actual value
 at a given Earth-sun distance as determined by the day of year.
 
+2) it allows comparison of the different atmospheric coefficients
+
 'create_time_series.py' ran multiple 6S runs to cover the parameter space. 
-here we just call the pickle files saved by that modules
+here we just call the pickle files saved by that module
 
 """
 

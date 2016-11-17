@@ -277,13 +277,13 @@ def main():
   base_path = os.path.dirname(os.path.abspath(__file__))
   outdir = ('LUTs/{0[sensor]}_{0[aerosol_profile]}/'
   'viewz_{0[view_zenith]}').format(config)
+  # validation outdir is separate
+  if config['build_type'] == '--validation':
+    outdir = ('LUTs/validation/{0[sensor]}_{0[aerosol_profile]}/'
+    'viewz_{0[view_zenith]}').format(config)
+  
   out_path = os.path.join(base_path,outdir)
   
-  # validation directory (if selected)
-  if config['build_type'] == '--validation':
-    out_path = os.path.join(base_path,'validation',outdir)
-  
-  # move to output directory
   if not os.path.exists(out_path):
     os.makedirs(out_path)
   os.chdir(out_path)
@@ -291,12 +291,10 @@ def main():
   # time check
   time0 = time.time()
   
-  #run for each channel separately
   for channel in config['channels']:
     
     config['channel'] = channel
           
-    # LUT filename
     filename = ('{0[sensor]}_{0[aerosol_profile]}_{0[view_zenith]}_'
                 '{0[channel]}.lut').format(config)
     
@@ -306,7 +304,7 @@ def main():
       print('Building LUT: '+filename)
       create_LUT(config,variables,filename)      
       
-  # time check (cumulative)
+  # cumulative time check
   T = time.time() - time0
   print('cumulative time: {:.1f} secs, {:.1f} mins,'
   '{:.1f} hours'.format(T,T/60,T/3600) )

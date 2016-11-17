@@ -81,42 +81,54 @@ def doy_stats(nVals):
 
 def all_stats(nEdir,nEdif,nLp):
   
-  # stats for each variable
+  # stats for each doy
   stats_Edir = doy_stats(nEdir)
   stats_Edif = doy_stats(nEdif)
   stats_Lp = doy_stats(nLp)
   
-  return {
-          
-    # mean values
-    'mean_Edir': [stats[0] for stats in stats_Edir],
-    'mean_Edif': [stats[0] for stats in stats_Edif],
-    'mean_Lp':   [stats[0] for stats in stats_Lp],
-    # min values
-    'min_Edir':  [stats[1] for stats in stats_Edir],
-    'min_Edif':  [stats[1] for stats in stats_Edif],
-    'min_Lp':    [stats[1] for stats in stats_Lp],
-    # max values
-    'max_Edir':  [stats[2] for stats in stats_Edir],
-    'max_Edif':  [stats[2] for stats in stats_Edif],
-    'max_Lp':    [stats[2] for stats in stats_Lp]
-
-          }
+  # parse mean values
+  mean_Edir = [stats[0] for stats in stats_Edir]
+  mean_Edif = [stats[0] for stats in stats_Edif]
+  mean_Lp   = [stats[0] for stats in stats_Lp]
+  # parse min values
+  min_Edir = [stats[1] for stats in stats_Edir]
+  min_Edif = [stats[1] for stats in stats_Edif]
+  min_Lp   = [stats[1] for stats in stats_Lp]
+  # parse max values
+  max_Edir = [stats[2] for stats in stats_Edir]
+  max_Edif = [stats[2] for stats in stats_Edif]
+  max_Lp   = [stats[2] for stats in stats_Lp]
+     
+  # combine stats (ease of viewing)
+  mean = np.mean([mean_Edir,mean_Edif,mean_Lp],axis=0)
+  mn = np.min([min_Edir,min_Edif,min_Lp],axis=0)
+  mx = np.max([max_Edir,max_Edif,max_Lp],axis=0)
   
+  return {
+  'mean':mean,'min':mn,'max':mx, 
+  'mean_Edir': mean_Edir,'mean_Edif': mean_Edif,'mean_Lp':   mean_Lp,
+  'min_Edir': min_Edir,'min_Edif': min_Edif,'min_Lp': min_Lp,
+  'max_Edir': max_Edir,'max_Edif': max_Edif,'max_Lp': max_Lp
+        }
+        
 def plot_stats(doy, stats):
   
   # plots
-  plt.plot(doy,stats['mean_Edir'],'r')
-  plt.plot(doy,stats['mean_Edif'],'g')
-  plt.plot(doy,stats['mean_Lp'],'b')
+#  plt.plot(doy,stats['min_Edir'],'_b')
+#  plt.plot(doy,stats['min_Edif'],'_b')
+#  plt.plot(doy,stats['min_Lp']  ,'_b')
+#  
+#  plt.plot(doy,stats['max_Edir'],'_r')
+#  plt.plot(doy,stats['max_Edif'],'_r')
+#  plt.plot(doy,stats['max_Lp']  ,'_r')
+#  
+#  plt.plot(doy,stats['mean_Edir'],'og')
+#  plt.plot(doy,stats['mean_Edif'],'og')
+#  plt.plot(doy,stats['mean_Lp']  ,'og')
 
-  plt.plot(doy,stats['min_Edir'],'.r')
-  plt.plot(doy,stats['min_Edif'],'.g')
-  plt.plot(doy,stats['min_Lp'],'.b')
-  
-  plt.plot(doy,stats['max_Edir'],'.r')
-  plt.plot(doy,stats['max_Edif'],'.g')
-  plt.plot(doy,stats['max_Lp'],'.b')
+  plt.plot(doy,stats['min'],'_b',mew=2)
+  plt.plot(doy,stats['max'],'_r',mew=2)
+  plt.plot(doy,stats['mean'],'og',markeredgecolor='none')
 
 def cos_function(x, a,b,c):
   return a*np.cos(x/(b*math.pi)) + c
@@ -130,6 +142,14 @@ def fit_cosine(x,y):
   
   return yy, params, stats
 
+def plot_model(params):
+  x = np.linspace(1,366,366) # all days of year
+  y = cos_function(x, params[0],params[1],params[2])
+  plt.plot(x,y,'-',color='gray')  
+  plt.xlim(1,366)
+  plt.xlabel('Day of Year')
+  plt.ylabel('Normalized Output')
+  
 def main():
   indir = '/home/sam/git/atmcorr/z/elliptical_orbit_correction/SixS_timeSeries'
   
@@ -138,20 +158,13 @@ def main():
   
   # get stats of outputs (i.e. instead of plotting thousands of points)
   stats = all_stats(nEdir,nEdif,nLp)
-  plot_stats(doy, stats)
-
-  # mean of the normalized means
-  mean = np.mean([
-                 np.array(stats['mean_Edir']), 
-                 np.array(stats['mean_Edif']),
-                 np.array(stats['mean_Lp'])
-                 ],axis=0)
   
   # fit model to mean
-  y, params, stats = fit_cosine(doy,mean)
+  y, params, model_stats = fit_cosine(doy,stats['mean'])
   
   # plot model
-  plt.plot(doy,y,'-r')
+  plot_model(params)
+  plot_stats(doy, stats)
 
 if __name__ == '__main__':
   main()

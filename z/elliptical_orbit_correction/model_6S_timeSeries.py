@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-plot_6S_timeSeries.py, Sam Murphy (2016-11-09)
+model_6S_timeSeries.py, Sam Murphy (2016-11-09)
 
 """
 

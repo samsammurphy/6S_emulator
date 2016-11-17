@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-plot_harmonic_time__series.py, Sam Murphy (2016-11-09)
+plot_6S_timeSeries.py, Sam Murphy (2016-11-09)
 
 """
 
@@ -131,7 +131,7 @@ def fit_cosine(x,y):
   return yy, params, stats
 
 def main():
-  indir = '/home/sam/git/atmcorr/z/harmonic_investigation/harmonic_time_series'
+  indir = '/home/sam/git/atmcorr/z/elliptical_orbit_correction/SixS_timeSeries'
   
   # read 6S runs and normalize outputs
   doy, nEdir,nEdif,nLp = normalize_time_series(indir)

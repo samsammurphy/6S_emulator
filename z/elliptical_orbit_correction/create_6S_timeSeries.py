@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-create_harmonic_time_series.py, Sam Murphy (2016-11-03)
+create_6S_timeSeries.py, Sam Murphy (2016-11-03)
 
-This is part of the 'harmonic investigation'. Essentially, it seems that critical
+This is part of elliptical orbit correction. Essentially, it seems that critical
 atmospheric correction parameters (Edir, Edif and Lp) can be well defined using
 a simple harmonic function.
 
 x = a.cos(doy / (b.pi)) + c
+
+This helps to significantly reduce the size of LUTs (i.e. only one doy required).
 
 To test/demonstrate this I ran 6S (via Py6S) for a parameter space that include:
   - Landsat8, B2-B7 (i.e. from blue to swir2)

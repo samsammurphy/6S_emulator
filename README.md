@@ -1,97 +1,23 @@
-## Atmospheric Correction using Python
+### What is this repo about?
 
-The goal is to help you convert at-sensor radiance to surface reflectance. 
+It is about atmospheric correction of satellite images. The aim is to help you convert from:
 
-The code runs the 6S radiative transfer code in Fortran under the hood. The 6S code was adopted by NASA and USGS for their surface reflectance products for both the Landsat and MODIS missions. It can be used to correct any satellite imagery between 0.4 - 4 microns.
+radiance -> surface reflectance
 
-Interaction with 6S is achieved through a Python wrapper called [Py6S](http://py6s.readthedocs.io/en/latest/introduction.html). The wrapper supports all the functionality of the original 6S code (and more!)
- 
-A key contribution in this repo is the use of interpolated look-up tables (iLUTs) to speed up 6S.
+### How does it work?
 
+This project is written in Python. We use the [6S](link) radiative transfer code through a Python wrapper called [Py6S](link). 
 
-### What are iLUTs? 
+We build [interpolated look up tables (iLUTs)](link) to get the parameter values we need to convert from [at-sensor radiance to surface reflectance](link).
 
-It helps to first consider a normal lookup table (LUT). We could run Py6S a whole bunch of times and record both the input and output values in a LUT. Then, later on, we could use a given set of input values to rapidly look up the output values. The problem with a LUT, however, is that the input and output values are discrete whilst in real life they are continuous. After creating a LUT we therefore interpolate it in n-dimensional space so that we can use continuous inputs and to get continuous outputs. 
+### Why is this important?
 
-### How do I use an iLUT?
+Radiative transfer code (e.g. 6S, MODTRAN, etc.) take a [long time](link) to execute. The *standard* solution is to use interpolated look up tables (refs). We have built one for 6S.
 
-The iLUTs are 'interpolator objects' which take in the following input:
+### What about MODTRAN?
 
-* solar zenith angle (degrees)
-* water vapour column (g/cm^2)
-* ozone column (atm-cm)
-* aerosol optical thickness
-* altitude (km)
+6S compares well, slight edge, free and open-source
 
-and provide the following output
-
-* direct solar irradiance (Edir)
-* diffuse solar irradiance (Edif)
-* transmissivity from surface to sensor (tau2)
-* path radiance (Lp)
-
-You can use an iLUT in Python like this:
-
-```
-In [1] Edir, Edif, tau2, Lp = iLUT(solar_z,H2O,O3,AOT,alt)
-```
-
-### How do I calculate surface reflectance?
-
-surface reflectance (ref) can be calculated from at-sensor radiance (L) using this equation:
-
-```
-In [2] ref = (math.pi*(L-Lp))/(tau2*(Edir+Edif))
-```
-
-
-### Building a LUT
-
-This repo comes with a few LUTs already for demonstration purposes. If you would like to a build a LUT from scratch here is the syntax:
-
-```
-$ python3 LUT_build.py {satellite_sensor} {aerosol_profile} {view_zenith} {--test,--full,--validation}
-```
-
-The options are:
-
-* {satellite_sensor} = LANDSAT_TM, LANDSAT_ETM, LANDSAT_OLI or ASTER
-
-* {aerosol_profile} = BB, CO, DE, MA, NO or UR
-
-* {view_zenith} = integer value for view zenith of sensor in degrees (typically = 0)
-
-* {--flags} = must pick one!
-
-..where:
-
-BB = BiomassBurning, CO = Continental, DE = Desert, MA = Maritime, NO = NoAerosols, UR = Urban
-
---full = Complete selection of input parameters. Outputs used in atmospheric correction. ***This might take several hours to execute*** (but you only need to do it once, ever).
-
---test = NOT for atmospheric correction, just for a 'quick' test
-
---validation = (advanced) a selection of input parameters that are used for validation
-
-***EXAMPLE***: To create a lookup tabe not supplied here, e.g. for LANDSAT 8's OLI sensor using an urban aerosol model, you could run the following command:
-
-```
-$ python3 LUT_build.py LANDSAT_OLI UR 0 --test
-```
-
-### Interpolating a LUT
-
-The general syntax is:
-
-```
-$ python3 LUT_interpolate.py {satellite_sensor} {aerosol_profile} {view_zenith}
-```
-
-Let's interpolate one of the LUTs supplied with this repo
-
-```
-$ python3 LUT_interpolate.py LANDSAT_OLI MA 0
-```
 
 
 

@@ -1,12 +1,12 @@
-### What is this repo about?
+## Atmospheric correction of satellite images using 6S
 
-Atmospheric correction of satellite images. Specifically to convert from:
+### Who is this repo for?
 
-radiance -> surface reflectance
+If you need to convert **at-sensor radiance -> surface reflectance** then this repo might might be for you
 
 ### How does it work?
 
-This project is written in Python. We use the [6S](http://modis-sr.ltdri.org/pages/6SCode.html) radiative transfer code through a Python wrapper called [Py6S](http://py6s.readthedocs.io/en/latest/introduction.html). 
+We use the [6S](http://modis-sr.ltdri.org/pages/6SCode.html) radiative transfer code through a Python wrapper called [Py6S](http://py6s.readthedocs.io/en/latest/introduction.html). The project is written in Python. 
 
 We build interpolated look up tables ([iLUTs](link)) to get the parameter values we need to [atmospherically correct](link) radiance measured by a satellite sensor.
 

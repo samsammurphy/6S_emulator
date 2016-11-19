@@ -12,7 +12,7 @@ We build interpolated look up tables ([iLUTs](https://github.com/samsammurphy/6S
 
 ### Why is this important?
 
-Radiative transfer code (e.g. 6S, MODTRAN, etc.) take a [long time](link) to execute. The use of an iLUT boost performance speeds by a few orders of magnitude with a minimal effect on accuracy (i.e. [within X %](link)). 
+Radiative transfer code (e.g. 6S, MODTRAN, etc.) take a long time to execute. The use of an iLUT boost performance speeds by a few orders of magnitude with a minimal effect on accuracy (i.e. [within X %](link)). 
 
 ### What about MODTRAN?
 

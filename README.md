@@ -1,7 +1,5 @@
 ## Atmospheric correction of satellite images using 6S
 
-### Who is this repo for?
-
 If you need to convert **at-sensor radiance to surface reflectance** then this repo might might be for you
 
 ### How does it work?

@@ -279,7 +279,7 @@ def main():
   'viewz_{0[view_zenith]}').format(config)
   # validation outdir is separate
   if config['build_type'] == '--validation':
-    outdir = ('LUTs/validation/{0[sensor]}_{0[aerosol_profile]}/'
+    outdir = ('z/validation/vLUTs/{0[sensor]}_{0[aerosol_profile]}/'
     'viewz_{0[view_zenith]}').format(config)
   
   out_path = os.path.join(base_path,outdir)

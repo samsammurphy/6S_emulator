@@ -72,30 +72,24 @@ def main():
   
   args = sys.argv[1:]
   
-  if len(args) != 3:
-    print('usage: $ python3 LUT_interpolation.py  sensor aerosol_profile view_zenith')
+  if len(args) != 1:
+    print('usage: $ python3 LUT_interpolate.py  path/to/LUT_directory')
     sys.exit(1)
   else:
     lut_path = args[0]
-    
-  # configuration
-  config = {
-  'sensor':args[0],
-  'aeroprofile':args[1],
-  'view_z':int(args[2]),
-  }
-  
-  # I/O
-  base_path = os.path.dirname(os.path.abspath(__file__))
-  config_path = '{0[sensor]}_{0[aeroprofile]}/viewz_{0[view_z]}'.format(config)
-  lut_path  = os.path.join(base_path,'LUTs',config_path)
-  ilut_path = os.path.join(base_path,'iLUTs',config_path)
 
   try:
     os.chdir(lut_path)
   except:
     print('invalid LUT directory: ' + lut_path)
     sys.exit(1)
+    
+  # create iLUTs directory (i.e. swap '/LUTs/' with '/iLUTs/')
+  match = re.search('LUTs',lut_path)
+  base_path = lut_path[0:match.start()]
+  end_path = lut_path[match.end():]
+  ilut_path = base_path+'iLUTs'+end_path
+
   fnames = glob.glob('*.lut')
   fnames.sort()
   if len(fnames) == 0:

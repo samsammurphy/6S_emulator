@@ -17,16 +17,7 @@ from matplotlib import rcParams
 import numpy as np
 
 
-def plot_stats(stats_path):
-  
-  # find statistic files (in order)
-  try:
-    os.chdir(stats_path)
-  except:
-    print('Path not recognized :',stats_path)
-    sys.exit(1)
-  fnames = glob.glob('*.p')
-  fnames.sort()
+def plot_stats(fnames):
   
   # set-up plot space
   rcParams['xtick.direction'] = 'out' #xticks that point down
@@ -51,18 +42,29 @@ def plot_stats(stats_path):
 
 def main():
   
-  # configure this test
+  # configure this plot
+  ref = 0.05 # Lambertian surface reflectance
   sensor = 'LANDSAT_OLI'
   aero_profile = 'CO'
   view_z = 0
   config = sensor+'_'+aero_profile
 
-  # statistics directory
+  # I/O
   validation_path = os.path.dirname(os.path.abspath(__file__))
-  stats_path = '{}/stats/{}/viewz_{}'.format(validation_path,config,view_z)
-
+  stats_path = '{}/stats/{}/viewz_{}/{}'.format(validation_path,config,view_z,ref)
+  try:
+    os.chdir(stats_path)
+  except:
+    print('Path not recognized :',stats_path)
+    sys.exit(1)
+  fnames = glob.glob('*.stats')
+  fnames.sort()
+  if len(fnames) == 0:
+    print('Did not find stats files in :',stats_path)
+    sys.exit(1)    
+  
   # histogram plot (i.e. overlap each waveband)
-  plot_stats(stats_path)
+  plot_stats(fnames)
   
 if __name__ == '__main__':
   main()

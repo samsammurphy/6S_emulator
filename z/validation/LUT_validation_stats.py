@@ -3,15 +3,17 @@
 
 'LUT_validation_stats.py', Sam Murphy (2016-11-18)
 
-Initial validation of the iLUT approach to atmospheric correction.
+This module creates validation look up tables (vLUTs). It is for an initial 
+validation of the iLUT approach for atmospheric correction. The LUTs 
+used for atmospheric correction define a discrete parameter space, which is then
+interpolated to obtain continuous results. This raises the question: 
+  
+  'How do we know if the interpolation is reasonable?'
 
-The LUTs define a discrete parameter space that the iLUTs interpolate between.
-This raises the question: 'How do we know if this interpolation is reasonable?'
-
-To answer this question (at least initially) we have defined a set of parameter
+To answer this question we (at least initially) have defined a set of parameter
 values that are as far away as possible (i.e. in the middle) of the increments
-used to create the LUTs (and iLUTs). The idea being that these would be the 
-'most difficult' points for the iLUT to estimate.
+used to create the atmcorr LUTs (and iLUTs). The idea is that these mid-points
+are the 'most difficult' points for the iLUT to estimate.
 
 The validation parameter space was create by setting the --validation key to
 the 'LUT_build.py' module.
@@ -49,7 +51,7 @@ def parameter_stats(true,interp):
   }
   return stats
   
-def reflectance_stats(true,interp):
+def reflectance_stats(ref, true,interp):
   """
   Statistics of the atmcorr product (i.e. surface reflectance)
   """
@@ -59,10 +61,7 @@ def reflectance_stats(true,interp):
   
   def surface_reflectance(rad,Edir,Edif,tau2,Lp):
     return np.pi*(rad-Lp) / (tau2*(Edir+Edif))
-  
-  #'standard' Lambertian surface with reflectance of 0.1
-  ref = 0.1
-  
+    
   #true at-sensor radiance for standard surface
   true_rad = at_sensor_radiance(ref,true[:,0],true[:,1],true[:,2],true[:,3])
   
@@ -76,12 +75,12 @@ def reflectance_stats(true,interp):
   pd = pd[np.where(pd==pd)]
   
   #simple statistics (mean, std, min, max)  
-  simple = simple_stats(pd)
+  pd_stats = simple_stats(pd)
   
   #result  
-  return {'simple':simple,'pd_ref':pd}
+  return {'pd_stats':pd_stats,'pd_ref':pd,'ref':ref}
   
-def get_stats(fname,iLUT_filepath):
+def get_stats(fname,iLUT_filepath, ref):
   """
   Get parameter statistics (pstats) and reflectance statistics (rstats)
   """
@@ -106,59 +105,56 @@ def get_stats(fname,iLUT_filepath):
   #parameter statistics (i.e. Edir, Edif, tau2, Lp)
   pstats = parameter_stats(true,interp)
   
-  #reflectance statistics (i.e. for Lambertian reflectance of 0.3)
-  rstats = reflectance_stats(true,interp)
+  #reflectance statistics
+  rstats = reflectance_stats(ref, true,interp)
   
   # result
   return {'pstats':pstats,'rstats':rstats}
 
 def main():
   
-  # configure this test
+  # basic configuration
   sensor = 'LANDSAT_OLI'
   aero_profile = 'CO'
   view_z = 0 
   config = sensor+'_'+aero_profile
   
-  # input paths
+  # input
   validation_path = os.path.dirname(os.path.abspath(__file__))
   base_path =  os.path.dirname(os.path.dirname(validation_path))
   vLUT_path = '{}/vLUTs/{}/viewz_{}'.format(validation_path,config,view_z)
   iLUT_path = '{}/iLUTs/{}/viewz_{}'.format(base_path,config,view_z)
-  
-  # output paths
-  stats_path = '{}/stats/{}/viewz_{}'.format(validation_path,config,view_z)
-  plots_path = '{}/plots/{}/viewz_{}'.format(validation_path,config,view_z)
-  if not os.path.exists(stats_path):
-    os.makedirs(stats_path)
-  if not os.path.exists(plots_path):
-    os.makedirs(plots_path)
-  
   try:
     os.chdir(vLUT_path)
   except:
     print('Path not recognized :',vLUT_path)
     sys.exit(1)
-  
-  # read validation LUT
   fnames = glob.glob('*.lut')
   fnames.sort()
   if len(fnames) == 0:
     print('Did not find vLUT files in :',vLUT_path)
     sys.exit(1)
   
-  # find corresponding iLUT values and get statistics
-  for fname in fnames:
-    fid = fname.split('.')[0]  
-    iLUT_filepath = os.path.join(iLUT_path,fid+'.ilut')
-    if os.path.isfile(iLUT_filepath):
-      stats_filepath = os.path.join(stats_path,fid+'.p')
-      if os.path.isfile(stats_filepath) == False:
-        print('calculating stats for:'+fid)
-        stats = get_stats(fname,iLUT_filepath)
+  # reflectance dependent output
+  refs = np.linspace(0.01,0.3,30)
+  for ref in refs:
+    stats_path = '{}/stats/{}/viewz_{}/{}'\
+      .format(validation_path,config,view_z,ref)
+    if not os.path.exists(stats_path):
+      os.makedirs(stats_path)
+    
+    # get statistics
+    for fname in fnames:
+      fid = fname.split('.')[0]  
+      iLUT_filepath = os.path.join(iLUT_path,fid+'.ilut')
+      if os.path.isfile(iLUT_filepath):
+        print('Calculating stats for: {}_{}'.format(fid,ref))
+        stats = get_stats(fname,iLUT_filepath, ref)
+        stats_filepath = os.path.join(stats_path,fid+'.stats')
         pickle.dump(stats,open(stats_filepath,'wb'))
-    else:
-      print('iLUT filepath not recognized: ', iLUT_filepath)
+      else:
+        print('iLUT filepath not recognized: ', iLUT_filepath)
   
 if __name__ == '__main__':
   main()
+  print('done')

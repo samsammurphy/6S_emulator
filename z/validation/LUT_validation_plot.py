@@ -57,14 +57,17 @@ def plot_stats(refs,stats_dir,confidence_level):
   
   stats = read_stats(refs,stats_dir,confidence_level)
   
-  plt.plot(refs,stats['b'],'b')
-  plt.plot(refs,stats['g'],'g')
-  plt.plot(refs,stats['r'],'r')
-  plt.plot(refs,stats['n'],'c')
-  plt.plot(refs,stats['s1'],'y')
-  plt.plot(refs,stats['s2'],'m')
+  plt.plot(refs,stats['b'],'b',linewidth=2)
+  plt.plot(refs,stats['g'],'g',linewidth=2)
+  plt.plot(refs,stats['r'],'r',linewidth=2)
+  plt.plot(refs,stats['n'],'c',linewidth=2)
+  plt.plot(refs,stats['s1'],'y',linewidth=2)
+  plt.plot(refs,stats['s2'],'m',linewidth=2)
   
   plt.ylim(0,50)
+  plt.ylabel('{}% confidence interval'.format(confidence_level))
+  plt.xlabel('surface reflectance')
+  
   
       
 def main():

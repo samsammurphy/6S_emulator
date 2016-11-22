@@ -60,7 +60,8 @@ def reflectance_stats(ref, sixs_outputs, estimated_outputs):
   stats = (np.mean(pd),np.std(pd),np.min(pd),np.max(pd)) 
   
   # confidence percentiles (i.e. 90, 95 and 99%)
-  confidence = np.percentile(abs(pd),[90,95,99])
+  q = np.percentile(abs(pd),[90,95,99])
+  confidence = {'90':q[0],'95':q[1],'99':q[2]}
   
   # result  
   return {'ref':ref,'pd':pd,'stats':stats,'confidence':confidence}

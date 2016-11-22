@@ -33,25 +33,23 @@ def plot_stats(fnames):
   
   # plot histograms
   bins = np.linspace(-10,10,101)
-  colors = ['b','g','r','grey','grey','grey']
+  colors = ['b','g','r','c','y','m']
   for i, fname in enumerate(fnames):
     stats = pickle.load(open(fname,'rb'))
-    pd_ref = stats['rstats']['pd_ref']
-    plt.hist(pd_ref, bins, normed=1, facecolor=colors[i])
-
+    pd = stats['pd']
+    plt.hist(pd, bins, normed=1, facecolor=colors[i])
 
 def main():
   
   # configure this plot
-  ref = 0.05 # Lambertian surface reflectance
+  ref = 0.1 # Lambertian surface reflectance
   sensor = 'LANDSAT_OLI'
   aero_profile = 'CO'
-  view_z = 0
   config = sensor+'_'+aero_profile
-
+  
   # I/O
-  validation_path = os.path.dirname(os.path.abspath(__file__))
-  stats_path = '{}/stats/{}/viewz_{}/{}'.format(validation_path,config,view_z,ref)
+  validation_path = '/home/sam/git/6S_LUT/z/validation'# os.path.dirname(os.path.abspath(__file__))
+  stats_path = '{}/stats/{}/viewz_0/{}'.format(validation_path,config,ref)
   try:
     os.chdir(stats_path)
   except:

@@ -28,32 +28,11 @@ import glob
 import sys
 import pickle
 import numpy as np
-
-
-def simple_stats(array):
-  return (np.mean(array),np.std(array),np.min(array),np.max(array))  
-  
-def parameter_stats(true,interp):
+    
+def reflectance_stats(ref, sixs_outputs, estimated_outputs):
   """
-  Statistics of the atmcorr parameters (i.e. Edir, Edif, tau2, Lp)
-  """
-  
-  #percentage difference of the parameters
-  percent_diff = 100*(interp-true)/true
-  
-  #statistics on  of
-  stats = {
-  'percent_diff': percent_diff,
-  'Edir': simple_stats(percent_diff[:,0]),# direct solar irradiance
-  'Edif': simple_stats(percent_diff[:,1]),# diffuse solar irradiance
-  'tau2': simple_stats(percent_diff[:,2]),# transmissivity from surface to sensor
-  'Lp'  : simple_stats(percent_diff[:,3]) # path radiance
-  }
-  return stats
-  
-def reflectance_stats(ref, true,interp):
-  """
-  Statistics of the atmcorr product (i.e. surface reflectance)
+  Surface reflectance statistics. Compares 6S outputs to the estimated 
+  (i.e. interpolated) outputs.
   """
   
   def at_sensor_radiance(ref,Edir,Edif,tau2,Lp):
@@ -62,99 +41,92 @@ def reflectance_stats(ref, true,interp):
   def surface_reflectance(rad,Edir,Edif,tau2,Lp):
     return np.pi*(rad-Lp) / (tau2*(Edir+Edif))
     
-  #true at-sensor radiance for standard surface
-  true_rad = at_sensor_radiance(ref,true[:,0],true[:,1],true[:,2],true[:,3])
   
-  #interpolated reflectance value
-  interp_ref = surface_reflectance(true_rad,interp[:,0],interp[:,1],interp[:,2],interp[:,3])
+  # convert to arrays for speed
+  true = np.array(sixs_outputs)
+  est = np.array(estimated_outputs)    
+    
+  # at-sensor radiance (i.e. for given surface reflectance and atmosphere)
+  radiance = at_sensor_radiance(ref,true[:,0],true[:,1],true[:,2],true[:,3])
   
-  #percentage difference from standad reflectance
+  # reflectance value from estimated (i.e. interpolated) output
+  interp_ref = surface_reflectance(radiance,est[:,0],est[:,1],est[:,2],est[:,3])
+  
+  # percentage difference from true reflectance
   pd = 100*(interp_ref-ref)/ref
+  pd = pd[np.where(pd==pd)]    #ignore NaNs  
   
-  #ignore NaNs
-  pd = pd[np.where(pd==pd)]
+  # mean, std, min, max
+  stats = (np.mean(pd),np.std(pd),np.min(pd),np.max(pd)) 
   
-  #simple statistics (mean, std, min, max)  
-  pd_stats = simple_stats(pd)
+  # confidence percentiles (i.e. 90, 95 and 99%)
+  confidence = np.percentile(abs(pd),[90,95,99])
   
-  #result  
-  return {'pd_stats':pd_stats,'pd_ref':pd,'ref':ref}
+  # result  
+  return {'ref':ref,'pd':pd,'stats':stats,'confidence':confidence}
   
-def get_stats(fname,iLUT_filepath, ref):
-  """
-  Get parameter statistics (pstats) and reflectance statistics (rstats)
-  """
-  
-  #validation LUT and interpolated LUT  
-  vLUT = pickle.load(open(fname,"rb"))
-  iLUT = pickle.load(open(iLUT_filepath,"rb"))
-  
-  #known test values
-  test_inputs = vLUT['inputs']['permutations']
-  true_outputs = vLUT['outputs']
-  
-  #interpolated estimates
-  interp_outputs = []
-  for test_input in test_inputs:
-    interp_outputs.append(iLUT(test_input))
 
-  #array format
-  true = np.array(true_outputs)
-  interp = np.array(interp_outputs)
+
+def get_stats(vLUT_path,iLUT_path, ref):
+  """
+  Loads the validation LUT (i.e. discrete table) and the interpolated LUT 
+  (i.e. a linear interpolator object). Calculates interpolated output values
+  for each set of validation input parameters. Then passes this interpolated 
+  output, as well as the validation (i.e. true) output, to reflectance_stats().  
   
-  #parameter statistics (i.e. Edir, Edif, tau2, Lp)
-  pstats = parameter_stats(true,interp)
+  """
+  
+  # validation LUT (a discrete table)
+  vLUT = pickle.load(open(vLUT_path,"rb")) 
+  
+  # 6s outputs
+  sixs_outputs = vLUT['outputs']  
+  
+  # estimated 6S outputs (i.e. interpolated from true inputs)
+  inputs = vLUT['inputs']['permutations']
+  iLUT = pickle.load(open(iLUT_path,"rb"))# interpolated LUT (an interpolator object)  
+  estimated_outputs = []
+  for i in inputs:
+    estimated_outputs.append(iLUT(i))
   
   #reflectance statistics
-  rstats = reflectance_stats(ref, true,interp)
+  return reflectance_stats(ref, sixs_outputs, estimated_outputs)
   
-  # result
-  return {'pstats':pstats,'rstats':rstats}
-
 def main():
   
-  # basic configuration
+  # configuration
   sensor = 'LANDSAT_OLI'
   aero_profile = 'CO'
-  view_z = 0 
   config = sensor+'_'+aero_profile
   
-  # input
-  validation_path = os.path.dirname(os.path.abspath(__file__))
-  base_path =  os.path.dirname(os.path.dirname(validation_path))
-  vLUT_path = '{}/vLUTs/{}/viewz_{}'.format(validation_path,config,view_z)
-  iLUT_path = '{}/iLUTs/{}/viewz_{}'.format(base_path,config,view_z)
-  try:
-    os.chdir(vLUT_path)
-  except:
-    print('Path not recognized :',vLUT_path)
-    sys.exit(1)
-  fnames = glob.glob('*.lut')
-  fnames.sort()
-  if len(fnames) == 0:
-    print('Did not find vLUT files in :',vLUT_path)
+  # input (i.e. validation LUTs and interpolated LUTs)
+  validation_dir = os.path.dirname(os.path.abspath(__file__))
+  base_dir =  os.path.dirname(os.path.dirname(validation_dir))
+  vLUT_dir = os.path.join(validation_dir,'vLUTs',config,'viewz_0')
+  iLUT_dir = os.path.join(base_dir,'iLUTs',config,'viewz_0')
+  vLUT_paths = glob.glob(vLUT_dir+'/*.lut')
+  if vLUT_paths == []:
+    print('Validation LUTs not found at: '+vLUT_dir)
     sys.exit(1)
   
-  # reflectance dependent output
+  # output (i.e. for each surface reflectance value)
   refs = np.linspace(0.01,0.3,30)
   for ref in refs:
-    stats_path = '{}/stats/{}/viewz_{}/{}'\
-      .format(validation_path,config,view_z,ref)
-    if not os.path.exists(stats_path):
-      os.makedirs(stats_path)
+    stats_dir = os.path.join(validation_dir,'stats',config,'viewz_0',str(ref))
+    if not os.path.exists(stats_dir):
+      os.makedirs(stats_dir)
     
-    # get statistics
-    for fname in fnames:
-      fid = fname.split('.')[0]  
-      iLUT_filepath = os.path.join(iLUT_path,fid+'.ilut')
-      if os.path.isfile(iLUT_filepath):
+    for vLUT_path in vLUT_paths:
+      fid = os.path.basename(vLUT_path).split('.')[0]   
+      iLUT_path = os.path.join(iLUT_dir,fid+'.ilut')
+      if os.path.isfile(iLUT_path):
         print('Calculating stats for: {}_{}'.format(fid,ref))
-        stats = get_stats(fname,iLUT_filepath, ref)
-        stats_filepath = os.path.join(stats_path,fid+'.stats')
-        pickle.dump(stats,open(stats_filepath,'wb'))
+        stats = get_stats(vLUT_path,iLUT_path, ref)
+        stats_path = os.path.join(stats_dir,fid+'.stats')
+        pickle.dump(stats,open(stats_path,'wb'))
       else:
-        print('iLUT filepath not recognized: ', iLUT_filepath)
+        print('iLUT filepath not recognized: ', iLUT_path)
   
 if __name__ == '__main__':
   main()
-  print('done')
+  print('Done')

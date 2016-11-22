@@ -49,7 +49,7 @@ def main():
   
   # I/O
   validation_path = '/home/sam/git/6S_LUT/z/validation'# os.path.dirname(os.path.abspath(__file__))
-  stats_path = '{}/stats/{}/viewz_0/{}'.format(validation_path,config,ref)
+  stats_path = '{}/stats/{}/viewz_0/{:.2f}'.format(validation_path,config,ref)
   try:
     os.chdir(stats_path)
   except:

@@ -112,7 +112,8 @@ def main():
   # output (i.e. for each surface reflectance value)
   refs = np.linspace(0.01,0.3,30)
   for ref in refs:
-    stats_dir = os.path.join(validation_dir,'stats',config,'viewz_0',str(ref))
+    stats_dir = os.path.join(validation_dir,'stats',config,'viewz_0',\
+                             '{:.2f}'.format(ref))
     if not os.path.exists(stats_dir):
       os.makedirs(stats_dir)
     

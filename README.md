@@ -14,6 +14,6 @@ Radiative transfer code (e.g. 6S, MODTRAN, etc.) take a long time to execute. Th
 
 ### What about MODTRAN?
 
-6S shows good agreement ([i.e. < 0.7 %](http://6s.ltdri.org/files/publication/Kotchenova_et_al_2006.pdf)) with MODTRAN. Some studies indicate that 6S has an edge in terms of accuracy; these include [Monte Carlo](http://6s.ltdri.org/files/publication/Kotchenova_et_al_2008.pdf) and [Ground-Truth](https://www.researchgate.net/publication/263620472_Evaluation_of_atmospheric_correction_models_and_Landsat_surface_reflectance_product_in_an_urban_coastal_environment) approaches. 
+6S shows good agreement ([i.e. < 0.7 %](http://6s.ltdri.org/files/publication/Kotchenova_et_al_2006.pdf)) with MODTRAN. Some studies indicate that 6S has an edge in terms of accuracy, including [Monte Carlo](http://6s.ltdri.org/files/publication/Kotchenova_et_al_2008.pdf) and [Ground-Truth](https://www.researchgate.net/publication/263620472_Evaluation_of_atmospheric_correction_models_and_Landsat_surface_reflectance_product_in_an_urban_coastal_environment) approaches. 
 
 NASA and the USGS use 6S for [Landsat](http://landsat.usgs.gov/CDR_LSR.php) and [MODIS](http://6s.ltdri.org/) surface reflectance products.

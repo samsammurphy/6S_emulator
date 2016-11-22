@@ -42,13 +42,13 @@ def plot_stats(fnames):
 def main():
   
   # configure this plot
-  ref = 0.1 # Lambertian surface reflectance
+  ref = 0.1 # Lambertian reflectance
   sensor = 'LANDSAT_OLI'
   aero_profile = 'CO'
   config = sensor+'_'+aero_profile
   
   # I/O
-  validation_path = '/home/sam/git/6S_LUT/z/validation'# os.path.dirname(os.path.abspath(__file__))
+  validation_path = os.path.dirname(os.path.abspath(__file__))
   stats_path = '{}/stats/{}/viewz_0/{:.2f}'.format(validation_path,config,ref)
   try:
     os.chdir(stats_path)

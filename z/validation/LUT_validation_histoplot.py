@@ -4,7 +4,7 @@
 'LUT_validation_histoplot.py', Sam Murphy (2016-11-18)
 
 
-Visualize the output from LUT_validation_stats
+Visualize LUT_validation_stats as overlapping histograms from blue to swir2
 
 """
 

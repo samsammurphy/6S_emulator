@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-'LUT_validation_plots.py', Sam Murphy (2016-11-18)
+'LUT_validation_histoplot.py', Sam Murphy (2016-11-18)
 
 
 Visualize the output from LUT_validation_stats

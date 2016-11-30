@@ -8,6 +8,7 @@ the 'LUT_build.py' module.
 
 Statistics are calculated in terms surface reflectance difference between 
 i) 6S forward model ('truth') and ii) interpolated 6S inverse model.
+
 """
 
 
@@ -92,9 +93,9 @@ def main():
   config = sensor+'_'+aero_profile
   
   # input (i.e. validation LUTs and interpolated LUTs)
-  validation_dir = os.path.dirname(os.path.abspath(__file__))
-  base_dir =  os.path.dirname(os.path.dirname(validation_dir))
-  vLUT_dir = os.path.join(validation_dir,'vLUTs',config,'viewz_0')
+  file_dir = os.path.dirname(os.path.abspath(__file__))
+  base_dir = os.path.dirname(os.path.dirname(os.path.dirname(file_dir)))
+  vLUT_dir = os.path.join(file_dir,'vLUTs',config,'viewz_0')
   iLUT_dir = os.path.join(base_dir,'iLUTs',config,'viewz_0')
   vLUT_paths = glob.glob(vLUT_dir+'/*.lut')
   if vLUT_paths == []:
@@ -102,9 +103,9 @@ def main():
     sys.exit(1)
   
   # output (i.e. for each surface reflectance value)
-  refs = np.linspace(0.01,0.3,30)
+  refs = [0.01]# np.linspace(0.01,0.3,30)
   for ref in refs:
-    stats_dir = os.path.join(validation_dir,'stats',config,'viewz_0',\
+    stats_dir = os.path.join(file_dir,'stats',config,'viewz_0',\
                              '{:.2f}'.format(ref))
     if not os.path.exists(stats_dir):
       os.makedirs(stats_dir)

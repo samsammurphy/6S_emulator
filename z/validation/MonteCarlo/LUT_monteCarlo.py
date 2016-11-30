@@ -21,6 +21,7 @@ import os
 import pickle
 import time
 import datetime
+import random
 from Py6S import *
 
 def Landsat8_wavelengths(channel):
@@ -105,14 +106,14 @@ def main(timeZero):
   alt = 0
   
   # Landsat 8 channel name
-  channel = 'blue'
+  channel = 'green'
   
   # number of runs
-  n = 20000
+  n = 1
         
   # I/O
   base_path = os.path.dirname(os.path.abspath(__file__))
-  outdir = ('randomLUTs/altitude_{}').format(alt)
+  outdir = ('randomLUTs/alt_{}/{}').format(alt,channel)
   out_path = os.path.join(base_path,outdir)
   if not os.path.exists(out_path):
     os.makedirs(out_path)

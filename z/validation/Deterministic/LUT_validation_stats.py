@@ -3,23 +3,11 @@
 
 'LUT_validation_stats.py', Sam Murphy (2016-11-18)
 
-This module creates validation look up tables (vLUTs). It is for an initial 
-validation of the iLUT approach for atmospheric correction. The LUTs 
-used for atmospheric correction define a discrete parameter space, which is then
-interpolated to obtain continuous results. This raises the question: 
-  
-  'How do we know if the interpolation is reasonable?'
-
-To answer this question we (at least initially) have defined a set of parameter
-values that are as far away as possible (i.e. in the middle) of the increments
-used to create the atmcorr LUTs (and iLUTs). The idea is that these mid-points
-are the 'most difficult' points for the iLUT to estimate.
-
 The validation parameter space was create by setting the --validation key to
 the 'LUT_build.py' module.
 
-Statistics are in terms of how well the iLUT can calculate surface
-reflectance of a Lambertian surface
+Statistics are calculated in terms surface reflectance difference between 
+i) 6S forward model ('truth') and ii) interpolated 6S inverse model.
 """
 
 

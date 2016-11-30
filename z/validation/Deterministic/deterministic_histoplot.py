@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-'LUT_validation_histoplot.py', Sam Murphy (2016-11-18)
+'deterministic_histoplot.py', Sam Murphy (2016-11-18)
 
 
-Visualize LUT_validation_stats as overlapping histograms from blue to swir2
+Visualize deterministic_stats as overlapping histograms from blue to swir2
 
 """
 

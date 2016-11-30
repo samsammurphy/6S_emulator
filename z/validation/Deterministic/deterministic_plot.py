@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LUT_validation_plot.py, Sam Murphy (2016-11-21)
+deterministic_plot.py, Sam Murphy (2016-11-21)
 
-The overview of LUT_validation_stats. Displays results for all surface reflectance
+The overview of deterministic_stats. Displays results for all surface reflectance
 values (0.01 to 0.3) as lines that represent the 95% confidence limit for each
 waveband
 

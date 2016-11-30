@@ -112,7 +112,7 @@ def main():
   stats_dir = '{}/stats/{}/viewz_0/'.format(validation_dir,config)
     
   # plot stats: either i) percent difference (default) or ii) SR difference
-  plot_stats(refs, stats_dir,confidence_level,sr_interval = False)
+  plot_stats(refs, stats_dir,confidence_level,sr_interval = True)
   
 if __name__ == '__main__':
   main()

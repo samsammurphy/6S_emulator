@@ -32,7 +32,7 @@ import numpy as np
 def reflectance_stats(ref, sixs_outputs, estimated_outputs):
   """
   Surface reflectance statistics. Compares 6S outputs to the estimated 
-  (i.e. interpolated) outputs.
+  (i.e. interpolated) outputs in terms of difference in surface reflectance.
   """
   
   def at_sensor_radiance(ref,Edir,Edif,tau2,Lp):
@@ -42,17 +42,17 @@ def reflectance_stats(ref, sixs_outputs, estimated_outputs):
     return np.pi*(rad-Lp) / (tau2*(Edir+Edif))
     
   
-  # convert to arrays for speed
-  true = np.array(sixs_outputs)
+  # convert to arrays (i.e. process input/output lists in one go with no loops)
+  SixS = np.array(sixs_outputs)
   est = np.array(estimated_outputs)    
     
-  # at-sensor radiance (i.e. for given surface reflectance and atmosphere)
-  radiance = at_sensor_radiance(ref,true[:,0],true[:,1],true[:,2],true[:,3])
+  # at-sensor radiance using 6S outputs
+  radiance = at_sensor_radiance(ref,SixS[:,0],SixS[:,1],SixS[:,2],SixS[:,3])
   
   # reflectance value from estimated (i.e. interpolated) output
   interp_ref = surface_reflectance(radiance,est[:,0],est[:,1],est[:,2],est[:,3])
   
-  # percentage difference from true reflectance
+  # percentage difference from 6S reflectance
   pd = 100*(interp_ref-ref)/ref
   pd = pd[np.where(pd==pd)]    #ignore NaNs  
   
@@ -70,22 +70,25 @@ def reflectance_stats(ref, sixs_outputs, estimated_outputs):
 
 def get_stats(vLUT_path,iLUT_path, ref):
   """
-  Loads the validation LUT (i.e. discrete table) and the interpolated LUT 
-  (i.e. a linear interpolator object). Calculates interpolated output values
-  for each set of validation input parameters. Then passes this interpolated 
-  output, as well as the validation (i.e. true) output, to reflectance_stats().  
+  Loads the validation LUT (i.e. discrete table). Goes through each set
+  of input/output pairs. The output is the 6S result, the input will be interpolated
+  to create an estimate 6S output. The two types of output will be compared. 
   
   """
   
   # validation LUT (a discrete table)
   vLUT = pickle.load(open(vLUT_path,"rb")) 
   
-  # 6s outputs
+  # interpolated LUT (interpolator object)  
+  iLUT = pickle.load(open(iLUT_path,"rb"))
+  
+  # validation inputs
+  inputs = vLUT['inputs']['permutations']
+
+  # 6S outputs (i.e. validation truth)
   sixs_outputs = vLUT['outputs']  
   
-  # estimated 6S outputs (i.e. interpolated from true inputs)
-  inputs = vLUT['inputs']['permutations']
-  iLUT = pickle.load(open(iLUT_path,"rb"))# interpolated LUT (an interpolator object)  
+  # estimated outputs (i.e. interpolation to be tested) 
   estimated_outputs = []
   for i in inputs:
     estimated_outputs.append(iLUT(i))

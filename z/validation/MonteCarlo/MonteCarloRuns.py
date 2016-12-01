@@ -10,7 +10,7 @@ Run 6S for a random selection of input variables:
   - aerosol optical thickness (AOT)
 
 as well as over a few fixed variables:
-  - target altitude (user-defined)
+  - target altitude (sea-level)
   - wavebands (landsat oli)
   - aerosol profile (continental)
   - view zenith (0)
@@ -25,10 +25,12 @@ model SR is calculated as follows:
   
 """
 
+import sys
 import os
 import pickle
 import time
 import datetime
+import math
 import random
 import numpy as np
 from Py6S import *
@@ -72,52 +74,90 @@ def forward_model(ref,SixS_output):
   return ref*tau2*(Edir + Edif)/np.pi + Lp
   
 
-def inverse_model(rad,iLUT_output):
+def inverse_model(rad,iLUT_output, doy):
   """
-  Inverse model takes at-sensor radiance and converts to 'surface
-  reflectance'. It takes the inputs that 6S used to produce the 
+  Inverse model takes at-sensor radiance and converts to model surface
+  reflectance. It takes the inputs that 6S used to produce the 
   outputs that were used in the forward model. However, this time, we use
   an iLUT to estimate the 6S outputs, and use these estimated outputs to invert
   from at-sensor radiance to surface reflectance.
   """
   
+  # iLUT outputs at perihelion (Jan 4th)
   Edir = iLUT_output[0]
   Edif = iLUT_output[1]
   tau2 = iLUT_output[2]
   Lp   = iLUT_output[3]
-  
-  # surface_reflectance
-  return np.pi*(rad-Lp) / (tau2*(Edir+Edif))  
+
+  # elliptical orbit correction (ie. function of day-of-year)
+  def elliptical_correction(doy, Edir, Edif, Lp):
     
-def performance_statistics(iLUT,ins,outs):
+      # harmonic correction coefficient
+      a = 0.03275
+      b = 18.992
+      c = 0.968047
+      coeff =  a*np.cos(doy/(b*math.pi)) + c
+     
+      # correct for orbital eccentricity
+      Edir = Edir*coeff
+      Edif = Edif*coeff
+      Lp   = Lp*coeff
+      
+      return Edir, Edif, Lp
+
+  # corrected values
+  Edir, Edif, Lp = elliptical_correction(doy, Edir, Edif, Lp)
   
-  pstats = {}
+  # model surface_reflectance
+  model_ref = np.pi*(rad-Lp) / (tau2*(Edir+Edif))  
+ 
+  return model_ref
+    
+def performance_statistics(iLUT, doy, ins, outs, refs):
+  """
+  Performace of iLUT is measured by 'dref' which is the difference in the model 
+  surface reflectance from the true surface reflectance. 
   
-  for ref in np.linspace(0.05,0.5,10):
+  The model surface reflectance is derived by inverting at-sensor radiance. The
+  at-sensor radiance is calculated using 6S and inputs that we define. Therefore,
+  if the inversion behaves exactly like 6S, then the true and model surface 
+  reflectances will be exactly the same. However, there will be differences 
+  because the model is derived using an iLUT as opposed to 6S inverison.
+  
+  In essence, we are saying "in the case that we know exactly how 6S will 
+  behave what does the iLUT do?"
+  """
+  
+  pstats = []
+  
+  for ref in refs:
   
     # 6S outputs
     SixS_output = outs
     
     # iLUT-estimated 6S outputs
-    iLUT_output = iLUT(ins['solar_z'], ins['H2O'], ins['O3'], ins['AOT'], ins['alt'])
+    iLUT_output = iLUT(ins['solar_z'], ins['H2O'], ins['O3'], ins['AOT'], 0) 
+    #                                                                     ^
+    #                                                                     |
+    #                                  this '0' is target altitude at sea-level 
     
     # forward and inverse models
     radiance  = forward_model(ref,SixS_output)
-    model_ref = inverse_model(radiance,iLUT_output)  
+    model_ref = inverse_model(radiance,iLUT_output, doy)  
     
     # stats
     dref = model_ref - ref
-    pd = 100*dref/ref
+    #pd = 100*dref/ref
     
     # add to dictionary
-    pstats[ref] = (dref, pd)
+    pstats.append(dref)
   
   return pstats
     
-def run_6S_monteCarlo(iLUT, alt, channel, n):
+def run_6S_monteCarlo(iLUT, channel, n):
   """
   Runs 6S over a collection of randomized (and some fixed) input variables
-  and calculate stats on how well iLUT performs
+  and calculates stats on iLUT performance
   """
   
   inputs = []
@@ -152,7 +192,7 @@ def run_6S_monteCarlo(iLUT, alt, channel, n):
     s.geometry.solar_z = solar_z
     s.atmos_profile = AtmosProfile.UserWaterAndOzone(H2O,O3)
     s.aot550 = AOT
-    s.altitudes.set_target_custom_altitude(alt)
+    s.altitudes.set_target_custom_altitude(0)
     s.wavelength = Landsat8_channels(channel,wavelength=True)
     
     # run 6S
@@ -173,8 +213,7 @@ def run_6S_monteCarlo(iLUT, alt, channel, n):
            'solar_z':solar_z,
            'H2O':H2O,
            'O3':O3,
-           'AOT':AOT,
-           'alt':alt}
+           'AOT':AOT}
     
     outs = {'Edir':Edir,
             'Edif':Edif,
@@ -182,7 +221,8 @@ def run_6S_monteCarlo(iLUT, alt, channel, n):
             'Lp':Lp}
     
     # performance statistics
-    pstats = performance_statistics(iLUT,ins,outs)
+    refs = np.linspace(0.05,0.5,10) # reflectance range
+    pstats = performance_statistics(iLUT, doy, ins, outs, refs)
 
     # append to lists
     inputs.append(ins)
@@ -190,21 +230,63 @@ def run_6S_monteCarlo(iLUT, alt, channel, n):
     stats.append(pstats)
 
     
-  monteCarlo = {'inputs':inputs,'outputs':outputs,'stats':stats,'n':n}
+  monteCarlo = {'inputs':inputs,'outputs':outputs,'stats':stats,'refs':refs}  
 
   return monteCarlo
 
+def saveToFile(file_dir, channel, monteCarlo):
+  """
+  Saves..
+  1) input/outputs (for future reference, filtering, etc.)
+  2) performance statistics
+  ..separately for reduced file sizes and loading times  
+  """
+  
+  # extract 6S input/outputs
+  SixS_IO = {}
+  SixS_IO['inputs'] = monteCarlo['inputs']
+  SixS_IO['outputs'] = monteCarlo['outputs']
+  
+  # extract performance statistics
+  stats = np.array(monteCarlo['stats'])# convert to array for smaller file size
+  refs = monteCarlo['refs']
+
+  # create output directories
+  SixS_IO_dir = os.path.join(file_dir,('SixS_IO/{}').format(channel))
+  if not os.path.exists(SixS_IO_dir):
+    os.makedirs(SixS_IO_dir)
+  stats_dir = os.path.join(file_dir,('stats/{}').format(channel))
+  if not os.path.exists(stats_dir):
+    os.makedirs(stats_dir)
+
+  # full output path (filenames based on integer time)
+  t = int(time.time())
+  SixS_IO_out = os.path.join(SixS_IO_dir,'SixS_IO_{}.p'.format(t))
+  stats_out = os.path.join(stats_dir,'stats_{}.p'.format(t))
+  
+  # pickle
+  pickle.dump(SixS_IO, open(SixS_IO_out, 'wb'))  
+  pickle.dump((stats,refs), open(stats_out, 'wb'))  
+  
 def main():
-  t = time.time()
   
-  # target altitude
-  alt = 0
+  # read user-defined variable
+  args = sys.argv[1:]
+  if len(args) != 1:
+    print('usage: $ python3 MonteCarloRuns.py Landsat8_channel_name')
+    sys.exit(1)
   
+  # check it is a valid Landsat 8 channel name
+  channel = args[0]
+  if not channel in ['red','green','blue','nir','swir1','swir2']:
+    print('channel not recognized: {}'.format(channel))
+    sys.exit(1)
+    
   # Landsat 8 channel name
-  channel = 'red'
+  # channel = 'red'
   
   # number of runs
-  n = 20000
+  n = 25000
           
   # load interpolated look up table
   file_dir = os.path.dirname(os.path.abspath(__file__)) 
@@ -213,20 +295,14 @@ def main():
   fid = 'LANDSAT_OLI_CO_0_'+Landsat8_channels(channel,bandnum=True)
   iLUT_path = os.path.join(iLUT_dir,fid+'.ilut')
   iLUT = pickle.load(open(iLUT_path,"rb"))
-  
-  # create output directory
-  out_dir = os.path.join(file_dir,('runs/alt_{}/{}').format(alt,channel))
-  if not os.path.exists(out_dir):
-    os.makedirs(out_dir)
-  os.chdir(out_dir)
-  
-  # Monte Carlo runs of 6S
-  monteCarlo = run_6S_monteCarlo(iLUT, alt, channel, n)   
-   
-  # done
-  pickle.dump(monteCarlo, open('monteCarlo_{}.p'.format(int(t)), 'wb') )  
-  print('done in {} secs'.format(time.time()-t))
-    
+
+  # run MonteCarlo experiment
+  monteCarlo = run_6S_monteCarlo(iLUT, channel, n) 
+
+  # save to file  
+  saveToFile(file_dir, channel, monteCarlo)
+      
 if __name__ == '__main__':
+  t0 = time.time()
   main()
-  
+  print('done in {} mins'.format((time.time()-t0)/60))

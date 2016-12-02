@@ -12,6 +12,7 @@ import sys
 import pickle
 import numpy as np
 from matplotlib import pylab as plt
+from matplotlib import rcParams
 
 
 def load_performance_stats(channel):
@@ -58,51 +59,49 @@ def color_from_channel(channel):
 
 def plot_histograms(ref,channels):
   """
-  Plots two histograms 1) percentage difference, 2) delta reflectance
+  Plots percentage difference histograms
   """
-  fig = plt.figure()
-  ax1 = fig.add_subplot(211)
-  ax2 = fig.add_subplot(212)
+  
+  # plot setup (style = nice and clean)
+  rcParams['xtick.direction'] = 'out' #xticks that point down
+  plt.xlabel('% difference')
+  plt.xlim([-5,5])
+  plt.xticks(np.linspace(-5,5,11))
+  ax = plt.axes()
+  ax.spines['top'].set_visible(False)
+  ax.spines['right'].set_visible(False)
+  ax.spines['left'].set_visible(False)
+  ax.get_xaxis().tick_bottom()
+  ax.get_yaxis().set_visible(False)
   
   for channel in channels:
     
-    # load performance statistics (all SRs)
+    # load performance statistics (all reflectances)
     drefs, refs = load_performance_stats(channel)
       
     # stats for this reflectance
     dref = dref_slice(drefs,refs,ref)
   
-    # color of channel
+    # color for this channel
     color = color_from_channel(channel)
     
-    # percentage difference histograms
-    bins = np.linspace(-10,10,101)
+    # percentage difference histogram
     pd = 100*dref/ref
-    ax1.hist(pd, bins, normed=1, facecolor=color)
-    ax1.set_title('percentage difference')
-    
-    # dref histogram
-    bins = ref*bins/100 # convert to reflectance values (but in same % range)
-    ax2.hist(dref, bins ,normed=1, facecolor=color)
-    ax2.set_xlim((min(bins),max(bins)))
-    ax2.set_title('delta reflectance')
-    
+    bins = np.linspace(-10,10,101)
+    plt.hist(pd, bins, normed=1, facecolor=color)
+      
     print('{} 95% confidence = {}'.format(channel,np.percentile(abs(pd),95)))
-  
-  fig.tight_layout()
-
-  
+    
 def main():
   
   # surface reflectance (SR)
-  ref = 0.05
+  ref = 0.1
 
   # channel name
   channels = ['blue','green','red','nir','swir1','swir2']
 
   # histogram plot
   plot_histograms(ref,channels)
-  
   
 if __name__ == '__main__':
   main()

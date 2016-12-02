@@ -91,6 +91,7 @@ def plot_histograms(ref,channels):
     plt.hist(pd, bins, normed=1, facecolor=color)
       
     print('{} 95% confidence = {}'.format(channel,np.percentile(abs(pd),95)))
+  
     
 def main():
   
@@ -102,6 +103,7 @@ def main():
 
   # histogram plot
   plot_histograms(ref,channels)
+
   
 if __name__ == '__main__':
   main()

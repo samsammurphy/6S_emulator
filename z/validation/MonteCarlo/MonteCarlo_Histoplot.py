@@ -6,12 +6,29 @@ MonteCarlo_Histoplot.py
 Plots histogram of percentage difference for a single surface reflectance
 """
 
+import os
+import glob
 import sys
 import pickle
 import numpy as np
 from matplotlib import pylab as plt
 
 
+def load_performance_stats(channel):
+  file_dir = os.path.dirname(os.path.abspath(__file__)) 
+  stat_dir = os.path.join(file_dir,'stats',channel)
+  try:
+    os.chdir(stat_dir)
+    stat_files = glob.glob('*p')
+    drefs = []
+    for stat_file in stat_files:
+      these_drefs, refs = pickle.load(open(stat_file,'rb'))
+      drefs.append(these_drefs)
+    return np.concatenate((drefs),axis=0), refs
+  except:
+    print('statistics loading error for: '+stat_dir)
+    sys.exit(1)  
+  
 def dref_slice(drefs, refs, ref):
   """
   Performance metric is delta reflectance (dref). It was calculated for a 
@@ -23,7 +40,7 @@ def dref_slice(drefs, refs, ref):
     sys.exit()
   return np.array([ds[index][0] for ds in drefs])
 
-def plot_histograms(dref,ref):
+def plot_histograms(dref,ref,channel):
   """
   Plots two histograms 1) percentage difference, 2) delta reflectance
   """
@@ -34,12 +51,12 @@ def plot_histograms(dref,ref):
   # percentage difference histograms
   bins = np.linspace(-10,10,101)
   pd = 100*dref/ref
-  ax1.hist(pd, bins, normed=1, facecolor='r')
+  ax1.hist(pd, bins, normed=1, facecolor=channel)
   ax1.set_title('percentage difference')
   
   # dref histogram
   bins = ref*bins/100 # convert to reflectance values (but in same % range)
-  ax2.hist(dref, bins ,normed=1, facecolor='r')
+  ax2.hist(dref, bins ,normed=1, facecolor=channel)
   ax2.set_xlim((min(bins),max(bins)))
   ax2.set_title('delta reflectance')
   
@@ -49,18 +66,20 @@ def plot_histograms(dref,ref):
 
 def main():
   
+  # channel name
+  channel = 'blue'
+  
   # surface reflectance (SR)
-  ref = 0.5
+  ref = 0.1
   
-  # load performance statistics
-  fname = '/home/sam/git/6S_LUT/z/validation/MonteCarlo/stats/red/stats_1480633563.p'
-  drefs, refs = pickle.load(open(fname,'rb'))
-  
+  # load performance statistics (all SRs)
+  drefs, refs = load_performance_stats(channel)
+    
   # stats for this SR
   dref = dref_slice(drefs,refs,ref)
 
   # histogram plot
-  plot_histograms(dref,ref)
+  plot_histograms(dref,ref,channel)
   
 if __name__ == '__main__':
   main()

@@ -286,7 +286,7 @@ def main():
   # channel = 'red'
   
   # number of runs
-  n = 25000
+  n = 200
           
   # load interpolated look up table
   file_dir = os.path.dirname(os.path.abspath(__file__)) 

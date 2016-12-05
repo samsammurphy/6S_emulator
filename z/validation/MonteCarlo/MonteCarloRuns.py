@@ -146,10 +146,8 @@ def performance_statistics(iLUT, doy, ins, outs, refs):
     model_ref = inverse_model(radiance,iLUT_output, doy)  
     
     # stats
-    dref = model_ref - ref
-    #pd = 100*dref/ref
-    
-    # add to dictionary
+    dref = model_ref - ref # just delta reflectance
+    #pd = 100*dref/ref     # makes more sence to calculate pd after loading file
     pstats.append(dref)
   
   return pstats
@@ -281,12 +279,9 @@ def main():
   if not channel in ['red','green','blue','nir','swir1','swir2']:
     print('channel not recognized: {}'.format(channel))
     sys.exit(1)
-    
-  # Landsat 8 channel name
-  # channel = 'red'
-  
+     
   # number of runs
-  n = 200
+  n = 25000
           
   # load interpolated look up table
   file_dir = os.path.dirname(os.path.abspath(__file__)) 

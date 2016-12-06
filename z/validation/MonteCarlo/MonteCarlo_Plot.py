@@ -43,6 +43,7 @@ def plot_confidence95(channels):
     plt.plot(refs,confidence,color,linewidth=2)
     plt.xlabel('surface reflectance')
     plt.ylabel('delta reflectance interval')
+    plt.ylim(0,0.02)
         
     
 def main():

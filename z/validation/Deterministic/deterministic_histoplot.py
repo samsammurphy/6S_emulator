@@ -42,7 +42,7 @@ def plot_stats(fnames):
 def main():
   
   # configure this plot
-  ref = 0.3 # Lambertian reflectance
+  ref = 0.1 # Lambertian reflectance
   sensor = 'LANDSAT_OLI'
   aero_profile = 'CO'
   config = sensor+'_'+aero_profile

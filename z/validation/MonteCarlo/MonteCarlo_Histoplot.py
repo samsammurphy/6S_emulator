@@ -27,6 +27,7 @@ def load_performance_stats(channel):
     drefs = []
     for stat_file in stat_files:
       these_drefs, refs = pickle.load(open(stat_file,'rb'))
+      these_drefs[np.where(these_drefs != these_drefs)] = 0 # NaN = 0
       drefs.append(these_drefs)
     return np.concatenate((drefs),axis=0), refs
   except:
@@ -65,8 +66,8 @@ def plot_histograms(ref,channels):
   # plot setup (style = nice and clean)
   rcParams['xtick.direction'] = 'out' #xticks that point down
   plt.xlabel('% difference')
-  plt.xlim([-5,5])
-  plt.xticks(np.linspace(-5,5,11))
+  plt.xlim([-0.2,0.2])
+  plt.xticks(np.linspace(-0.2,0.2,11))
   ax = plt.axes()
   ax.spines['top'].set_visible(False)
   ax.spines['right'].set_visible(False)
@@ -86,11 +87,11 @@ def plot_histograms(ref,channels):
     color = color_from_channel(channel)
     
     # percentage difference histogram
-    pd = 100*dref/ref
-    bins = np.linspace(-10,10,101)
-    plt.hist(pd, bins, normed=1, facecolor=color)
+    #pd = 100*dref/ref
+    bins = np.linspace(-0.5,0.5,201)
+    plt.hist(dref, bins, normed=1, facecolor=color)
       
-    print('{} 95% confidence = {}'.format(channel,np.percentile(abs(pd),95)))
+    print('{} 95% confidence = {}'.format(channel,np.percentile(abs(dref),95)))
   
     
 def main():

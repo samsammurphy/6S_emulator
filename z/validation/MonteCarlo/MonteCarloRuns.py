@@ -165,7 +165,7 @@ def run_6S_monteCarlo(iLUT, channel, n):
   for i in range(0,n):
     
     # progress report
-    print('{} of {}'.format(i+1,n))
+    print('{} {} of {}'.format(channel, i+1,n))
   
     # random variables
     doy = random.randint(1,366)   # integer between 1-366

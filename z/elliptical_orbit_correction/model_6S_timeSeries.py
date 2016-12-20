@@ -151,7 +151,7 @@ def plot_model(params):
   plt.ylabel('Normalized Output')
   
 def main():
-  indir = '/home/sam/git/atmcorr/z/elliptical_orbit_correction/SixS_timeSeries'
+  indir = '/home/sam/git/6S_LUT/z/elliptical_orbit_correction/SixS_timeSeries'
   
   # read 6S runs and normalize outputs
   doy, nEdir,nEdif,nLp = normalize_time_series(indir)

@@ -60,14 +60,14 @@ def color_from_channel(channel):
 
 def plot_histograms(ref,channels):
   """
-  Plots percentage difference histograms
+  Plots delta surface reflectance histograms
   """
   
   # plot setup (style = nice and clean)
   rcParams['xtick.direction'] = 'out' #xticks that point down
-  plt.xlabel('% difference')
-  plt.xlim([-0.2,0.2])
-  plt.xticks(np.linspace(-0.2,0.2,11))
+  plt.xlabel('delta surface reflectance')
+  plt.xlim([-0.02,0.02])
+  #plt.xticks(np.linspace(-0.05,0.05,11))
   ax = plt.axes()
   ax.spines['top'].set_visible(False)
   ax.spines['right'].set_visible(False)
@@ -88,7 +88,7 @@ def plot_histograms(ref,channels):
     
     # percentage difference histogram
     #pd = 100*dref/ref
-    bins = np.linspace(-0.5,0.5,201)
+    bins = np.linspace(-0.05,0.05,201)
     plt.hist(dref, bins, normed=1, facecolor=color)
       
     print('{} 95% confidence = {}'.format(channel,np.percentile(abs(dref),95)))

@@ -161,6 +161,7 @@ def main():
   
   # fit model to mean
   y, params, model_stats = fit_cosine(doy,stats['mean'])
+  print('params = ',params)
   
   # plot model
   plot_model(params)

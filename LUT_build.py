@@ -1,313 +1,353 @@
 # -*- coding: utf-8 -*-
 """
-LUT_build
-_______________________________________________________________________________
+LUT_build.py, Sam Murphy (2017-04-26)
 
-This module builds a collection of lookup table (.lut) files for atmospheric
-correction. It runs the 6S radiative transfer code in Fortran via a Python
-wrapper (Py6S).
+Builds a collection of lookup tables (LUT) for atmospheric correction. 
+______________________________________________________________________
 
+Purpose: Radiative transfer (RT) code is computationally expensive. 
+Lookup tables can be used to create an emulator of radiative transfer 
+code that is much more efficient.
+
+This module runs the 6S radiative transfer code via a Python wrapper, 
+Py6S: https://github.com/robintw/Py6S
+
+WARNING! It takes a long time to build look up tables (e.g. several hours),
+i.e. there is a trade off between fast execution and long set-up time,
+fortunately this repo comes with a bunch of pre-built LUTs to save time.
 
 Usage
------
-
-runs at the command using the following syntax
-
-$ python3 LUT_build.py {sensor} {aerosol_profile}
-
-For example, to create LUTs for the Landsat 8 OLI sensor using
-a continental aerosol profile:
-
-$ python3 LUT_build.py LANDSAT_OLI CO
-
-
-Output
 ------
 
-This module saves a lookup table separately for each waveband into
-a '.lut' file.
+$ python3 LUT_build.py {options}
 
-It will create the following path from the current working direcotry:
+{options} include:
 
-./LUTs/{sensor}_{aerosol_profile}/viewz_{view_zenith}
+--channel     : name of predefined sensor channel, see..
+              : https://github.com/robintw/Py6S/blob/master/Py6S/Params/wavelength.py
+              : includes most Earth Observing satellites launched by space agencies
 
-So, for example, the above build would be saved to:
+--wavelength  : a scalar (central) or a pair (min, max) wavelength value(s) in microns
 
-./LUTs/LANDSAT_OLI_MA/viewz_0
+--filter      : a spectral filter function (only valid if wavelength pair defined)
 
+--aerosol     : aerosol profile to use (default = Continental), for options see..
+              : https://github.com/robintw/Py6S/blob/master/Py6S/Params/aeroprofile.py
+
+--build_type  : defines parameter space of input variables (default = test)
+              : options are: test, test2, validation and full
+              : ! MUST use full to build functioning LUT but this can take hours !
+
+Example Usage
+-------------
+
+1) a central wavelength of 0.42 microns:
+
+  $ python3 LUT_build.py --wavelength 0.42
+
+2) a wavelength range from 0.42 to 0.72 microns
+
+  $ python3 LUT_build.py --wavelength 0.42 0.72
+
+3) a wavelength range from 0.42 to 0.43 with a spectral filter function (must be 2.5 nm internals)
+
+  $ python3 LUT_build.py --wavelength 0.42 0.43 --filter [0.1, 0.8, 0.95, 0.87, 0.05]
+
+4) Sentinel 2, channel 1
+
+  $ python3 LUT_build.py --channel S2A_MSI_01
+
+5) Landsat 8, channel 1
+
+  $ python3 LUT_build.py --channel LANDSAT_OLI_B8
+
+6) Build a full LUT for Sentinel 2, channel 1
+
+  $ py LUT_build.py --channel S2A_MSI_01 --build_type full
+  
 """
 
 import os
-import pickle
 import sys
+import argparse
 import time
-from itertools import product
-
 import numpy as np
+import math
+from itertools import product
+import pickle
 from Py6S import *
 
+def mid_points(elements):
+  x = np.array(elements)
+  return (x[1:] + x[:-1]) / 2
 
-# assign an aerosol profile to a 6S object
-def assign_AeroProfile(s,profile):
-  switch = {
-  'BB':AeroProfile.BiomassBurning,
-  'CO':AeroProfile.Continental,
-  'DE':AeroProfile.Desert,
-  'MA':AeroProfile.Maritime,
-  'NO':AeroProfile.NoAerosols,
-  'UR':AeroProfile.Urban
-  }
-  s.aero_profile = switch[profile]
-
-# define VSWIR channels to be used
-def define_channels(sensor):
-  switch = {
-  'LANDSAT_TM' :['B1','B2','B3','B4','B5','B7'],
-  'LANDSAT_ETM':['B1','B2','B3','B4','B5','B7'],
-  'LANDSAT_OLI':['B2','B3','B4','B5','B6','B7'],
-  'ASTER':['B1','B2','B3B','B4','B5','B6','B7','B8','B9']
-  }
-  channels = switch[sensor]
-  return channels
-  
-# get Py6S spectral filter function (i.e. a 'Wavelength')
-def get_predefined_wavelength(config):
-  
-  if config['sensor'] == 'ASTER':
-    channels = {
-    'B1':PredefinedWavelengths.ASTER_B1,
-    'B2':PredefinedWavelengths.ASTER_B2,
-    'B3B':PredefinedWavelengths.ASTER_B3B,
-    'B3N':PredefinedWavelengths.ASTER_B3N,
-    'B4':PredefinedWavelengths.ASTER_B4,
-    'B5':PredefinedWavelengths.ASTER_B5,
-    'B6':PredefinedWavelengths.ASTER_B6,
-    'B7':PredefinedWavelengths.ASTER_B7,
-    'B8':PredefinedWavelengths.ASTER_B8,
-    'B9':PredefinedWavelengths.ASTER_B9
-    }
-  
-  if config['sensor'] == 'LANDSAT_TM':
-    channels = {
-    'B1':PredefinedWavelengths.LANDSAT_TM_B1,
-    'B2':PredefinedWavelengths.LANDSAT_TM_B2,
-    'B3':PredefinedWavelengths.LANDSAT_TM_B3,
-    'B4':PredefinedWavelengths.LANDSAT_TM_B4,
-    'B5':PredefinedWavelengths.LANDSAT_TM_B5,
-    'B7':PredefinedWavelengths.LANDSAT_TM_B7,
-    }
-    
-  if config['sensor'] == 'LANDSAT_ETM':
-    channels = {
-    'B1':PredefinedWavelengths.LANDSAT_ETM_B1,
-    'B2':PredefinedWavelengths.LANDSAT_ETM_B2,
-    'B3':PredefinedWavelengths.LANDSAT_ETM_B3,
-    'B4':PredefinedWavelengths.LANDSAT_ETM_B4,
-    'B5':PredefinedWavelengths.LANDSAT_ETM_B5,
-    'B7':PredefinedWavelengths.LANDSAT_ETM_B7,
-    }
-    
-  if config['sensor'] == 'LANDSAT_OLI':
-    channels = {
-    'B1':PredefinedWavelengths.LANDSAT_OLI_B1,
-    'B2':PredefinedWavelengths.LANDSAT_OLI_B2,
-    'B3':PredefinedWavelengths.LANDSAT_OLI_B3,
-    'B4':PredefinedWavelengths.LANDSAT_OLI_B4,
-    'B5':PredefinedWavelengths.LANDSAT_OLI_B5,
-    'B6':PredefinedWavelengths.LANDSAT_OLI_B6,
-    'B7':PredefinedWavelengths.LANDSAT_OLI_B7,
-    'B8':PredefinedWavelengths.LANDSAT_OLI_B8,
-    'B9':PredefinedWavelengths.LANDSAT_OLI_B9,
-    'PAN':PredefinedWavelengths.LANDSAT_OLI_PAN
-    }
-  
-  # return a Py6S 'Wavelength'
-  return Wavelength(channels[config['channel']])
-
-# calculates midpoints of the values in a list or array (i.e. for LUT validation)
-def mid_points(values):
-  
-  x = np.array(values)
-  mid_points = (x[1:] + x[:-1]) / 2
-  
-  return mid_points
-
-# define input variables
 def input_variables(build_type):
   """
-  Lookup tables are build using 1) fixed parameters which are user-defined
-  and passed to main() via the command line interface, and 2) a set of 
-  variable parameters defined here.
+  Defines the input variables (i.e. parameter space) for
+  a given build_type
   
-  Variables
-  ---------
-  
-  solar_zs = solar zenith angles (degrees)
-  H2Os = water vapour columns (g/m2)
-  O3s = ozone columns (cm-atm)
-  AOTs = aerosol optical thicknesses
-  alts = altitudes (km above sealevel)
+  The input variables are:
+  - solar zenith angle (degrees)
+  - water vapour column (g/m2)
+  - ozone column (cm-atm)
+  - aerosol optical thickness
+  - altitude (km above sealevel)
   """
  
   test = {
-  'solar_zs':[0,10,20],
-  'H2Os':[0,2,3],
-  'O3s':[0,0.4,0.8],
-  'AOTs':[0,1.0],
-  'alts':[0,2,4]
+    'solar_zs':[0],
+    'H2Os':[0],
+    'O3s':[0],
+    'AOTs':[0],
+    'alts':[0]
+  }
+  
+  test2 = {
+    'solar_zs':[0,10,20],
+    'H2Os':[0,2,3],
+    'O3s':[0,0.4,0.8],
+    'AOTs':[0,1.0],
+    'alts':[0,2,4]
   }
   
   full = {
-  'solar_zs': np.linspace(0,60,7),  
-  'H2Os': [0, 0.25, 0.5, 1, 1.5, 2, 3, 5, 8.5],  
-  'O3s': [0.0, 0.8],  
-  'AOTs': [0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.25, 3],
-  'alts': [0,1,4,7.75]
+    'solar_zs': np.linspace(0,60,7),  
+    'H2Os': [0, 0.25, 0.5, 1, 1.5, 2, 3, 5, 8.5],  
+    'O3s': [0.0, 0.8],  
+    'AOTs': [0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.25, 3],
+    'alts': [0,1,4,7.75]
   }
   # Maximum altitude is set to 7.75 km to avoid 6S's 8 km scale height. 
-  # Note, only 30 mountain peaks in the world are higher than 7.75 km 
-  # (https://en.wikipedia.org/wiki/List_of_highest_mountains)
-  # can *probably* safely model targets >7.75 km as being at 7.75 km
+  # Note, only 30 mountain peaks in the world are higher than 7.75 km:
+  # https://en.wikipedia.org/wiki/List_of_highest_mountains
+  # and can probably safely model targets >7.75 km as being at 7.75 km
   
   validation = {
-  'solar_zs':mid_points(full['solar_zs']),  
-  'H2Os':mid_points(full['H2Os']),  
-  'O3s':mid_points(full['O3s']),  
-  'AOTs':mid_points(full['AOTs']),
-  'alts':mid_points(full['alts'])
+    'solar_zs':mid_points(full['solar_zs']),  
+    'H2Os':mid_points(full['H2Os']),  
+    'O3s':mid_points(full['O3s']),  
+    'AOTs':mid_points(full['AOTs']),
+    'alts':mid_points(full['alts'])
   }
   # This 'validation' parameter space uses the midpoints between the 
   # normal, i.e. 'full', build because we expect it to be the toughest test.
-  # Will also test using a Monte Carlo approach further down the line 
-  # (we expect Monte Carlo to be an easier test, as some of the random values
-  # will be closer those in 'full'.  
-  
-  # return user selected values
-  switch = {
-  '--test':test,
-  '--full':full,
-  '--validation':validation
-  }
-  variables = switch[build_type]
-  return variables
+  # We also test using a Monte Carlo approach (an easier test).
 
-def create_LUT(config,variables,filename):
+  build_selector = {
+    'test':test,
+    'test2':test2,
+    'validation':validation,
+    'full':full    
+  }
+
+  return build_selector[build_type]
+
+def build_LUT(config):
   """
-  Create a lookup table for a given configuration (i.e. sensor, aerosol profile
-  view_z and channel) and set of input variable permutations (i.e. solar_z,
-  H2O, O3, AOT and alt) 
+  Builds a lookup table for a given configuration
   """
-  
-  # configure a 6S object
+
+  # initiate 6S object with constants
   s = SixS()
   s.altitudes.set_sensor_satellite_level()
-  assign_AeroProfile(s,config['aerosol_profile'])
+  s.aero_profile = AeroProfile.__dict__[config['aerosol_profile']]
   s.geometry = Geometry.User()
   s.geometry.view_z = config['view_zenith']
-  s.geometry.month = 1
-  s.geometry.day = 4
-  # Earth-sun distance correction is applied on execution of atmcorr
-  # module using a harmonic function from perihelion = Jan 4th.
-  
-  # get permutation of input variables
-  perms = list(product(variables['solar_zs'],
-                       variables['H2Os'],
-                       variables['O3s'],
-                       variables['AOTs'],
-                       variables['alts']))  
+  s.geometry.month = 1 # Earth-sun distance correction is later
+  s.geometry.day = 4   # applied from perihelion, i.e. Jan 4th.
+
+  # calculate permutation of input variables
+  perms = list(product(config['invars']['solar_zs'],
+                       config['invars']['H2Os'],
+                       config['invars']['O3s'],
+                       config['invars']['AOTs'],
+                       config['invars']['alts']))  
                        
-  #run 6S for each permutation of input variables
-  outputs = [] # output list (Edir, Edif, tau2, Lp)
-  LUT = {}     # dictionary of 6S inputs, outputs and configuration
-  for perm in perms:
-    # print progress         
+  #run 6S for each permutation
+  outputs = []
+  for perm in perms:      
     print('{0}: solar_z = {1[0]:02}, H2O = {1[1]:.2f}, O3 = {1[2]:.1f},'
-          'AOT = {1[3]:.2f}, alt = {1[4]:.2f}'.format(filename,perm))
-    # update 6S object
+          'AOT = {1[3]:.2f}, alt = {1[4]:.2f}'.format(config['filename'],perm))
+    
+    # update input variables
     s.geometry.solar_z = perm[0]
     s.atmos_profile = AtmosProfile.UserWaterAndOzone(perm[1],perm[2])
     s.aot550 = perm[3]
     s.altitudes.set_target_custom_altitude(perm[4])
-    s.wavelength = get_predefined_wavelength(config)# i.e. for given sensor and channel
+    s.wavelength = config['spectrum']
     
     # run 6S
     s.run()
-    # extract transmissivity
-    absorb  = s.outputs.trans['global_gas'].upward       #absorption transmissivity
-    scatter = s.outputs.trans['total_scattering'].upward #scattering transmissivity
-    #define output variables
-    Edir = s.outputs.direct_solar_irradiance             #direct solar irradiance
-    Edif = s.outputs.diffuse_solar_irradiance            #diffuse solar irradiance
-    Lp   = s.outputs.atmospheric_intrinsic_radiance      #path radiance
-    tau2 = absorb*scatter                                #transmissivity (from surface to sensor)
-    #append to outputs list
-    outputs.append((Edir,Edif,tau2,Lp))
+    
+    # solar irradiance
+    Edir = s.outputs.direct_solar_irradiance             # direct solar irradiance
+    Edif = s.outputs.diffuse_solar_irradiance            # diffuse solar irradiance
+    E = Edir + Edif                                      # total solar irraduance
+    # transmissivity
+    absorb  = s.outputs.trans['global_gas'].upward       # absorption transmissivity
+    scatter = s.outputs.trans['total_scattering'].upward # scattering transmissivity
+    tau2 = absorb*scatter                                # transmissivity (from surface to sensor)
+    # path radiance
+    Lp   = s.outputs.atmospheric_intrinsic_radiance      # path radiance
+    
+    # correction coefficients for this configuration
+    # i.e. surface_reflectance = (L - a) / b,
+    #      where, L is at-sensor radiance
+    a = Lp
+    b = (tau2*E)/math.pi
+    outputs.append((a,b))
   
-  # pickle LUT
-  LUT['inputs'] = {'config':config,'permutations':perms,'variables':variables}
-  LUT['outputs'] = outputs
-  pickle.dump( LUT, open(filename, 'wb') )
+  # LUT built! save to pickle file =)
+  LUT = {'config':config,'outputs':outputs}
+  pickle.dump( LUT, open(config['filepath'], 'wb') )
   
   return
 
+def IO_handler(config,args):
+  """
+  Handles output directory and filename
+  """
+      
+  # user-defined wavelength filename
+  filename = []
+  if args.wavelength:
+    filename.append('wavelength_')
+    filename.append('_'.join(args.wavelength))
+  if args.filter:
+    filename.append('_f')
+  filename = ''.join(filename)
+  
+  # predefined sensor channel filename
+  if args.channel:
+    filename = args.channel
+  
+  # sensor name
+  if args.channel:
+    sensor_name = '_'.join(filename.split('_')[:-1])
+  else:
+    sensor_name = 'user-defined-sensor'
+
+  # outdir
+  base_path = os.path.dirname(os.path.abspath(__file__))
+  outdir = os.path.join(base_path,'LUTs',sensor_name,
+  config['aerosol_profile'],'view_zenith_{}'.format(config['view_zenith']))
+  if not os.path.exists(outdir):
+    print('\nCreating new output directory!\n'+outdir+'\n')
+    os.makedirs(outdir)
+  os.chdir(outdir)
+
+  # update config
+  config['outdir'] = outdir
+  config['filename'] = filename
+  config['filepath'] = os.path.join(outdir,filename)
+
+  return 
+  
 def main():
   
-  args = sys.argv[1:]
+  # parse arguments
+  parser = argparse.ArgumentParser() 
+  parser.add_argument('--channel','-c')
+  parser.add_argument('--wavelength','-w', nargs='*')
+  parser.add_argument('--filter','-f', nargs='*')
+  parser.add_argument('--aerosol','-a')
+  parser.add_argument('--build_type','-b')
+  args = parser.parse_args()
+  channel = args.channel
+  wavelength = args.wavelength
+  spectral_filter = args.filter
+  aerosol_profile = args.aerosol
+  build_type = args.build_type
   
-  if len(args) != 4:
-    print('usage: $ python3 LUT_build.py sensor aerosol_profile view_zenith build_type')
+  # user-defined wavelengths
+  if wavelength:
+    
+    if len(wavelength) > 2:
+      print('wavelength can be scalar or 2-tuple only, was given wavelength: ',wavelength)
+      sys.exit(1)
+
+    start_wavelength = float(wavelength[0])
+    
+    if len(wavelength) == 2:
+      end_wavelength = float(wavelength[1])
+      
+      # (optional) spectral filter function
+      if spectral_filter:
+        # sampling must be in 2.5 nm intervals (i.e. 0.0025 microns)
+        n = (end_wavelength - start_wavelength) / 0.0025 + 1
+        l = len(spectral_filter)
+        if abs(l-n) > 1e-6:
+          print('Filter must be in 2.5 nm intervals, expected {} samples, got {}'.format(round(n),l))
+          sys.exit(1)
+        else:
+          spectrum = Wavelength(start_wavelength,end_wavelength=end_wavelength,filter=spectral_filter)
+      else:
+        spectrum = Wavelength(start_wavelength,end_wavelength=end_wavelength)
+    else:
+      spectrum = Wavelength(start_wavelength)
+
+
+  # predefined sensor channel, for complete list see Py6S 'PredefinedWavelengths':
+  # https://github.com/robintw/Py6S/blob/master/Py6S/Params/wavelength.py
+  if channel:
+    try:
+      spectrum = Wavelength(PredefinedWavelengths.__dict__[channel])
+    except:
+      print('Satellite sensor channel not recognized: ',channel)
+      sys.exit(1)
+
+  # check wavelength or sensor channel spectrum was successfully assigned
+  try:
+    spectrum
+  except NameError:
+    print('must define wavelength(s) or sensor channel, returning..')
     sys.exit(1)
 
-  # configuration
+  # aerosol profile (default to Continental)
+  if aerosol_profile:
+    try:
+      test = AeroProfile.__dict__[aerosol_profile]
+    except:
+      print('Aerosol profile not recognized: ',aerosol_profile)
+      sys.exit(1)
+  else:
+    aerosol_profile = 'Continental'
+  
+  # build type (default to smallest test build)
+  if build_type:
+    if build_type not in ['test','test2','full','validation']:
+      print('Build type not recognized: ',build_type)
+      sys.exit(1)
+  else:
+    print('\nBuild type not defined!  .. will use test build ..\n')
+    build_type = 'test'
+
+  # configuration for this build
   config = {
-  'sensor':args[0],
-  'channels':define_channels(args[0]),
-  'aerosol_profile':args[1],
-  'view_zenith':int(args[2]),
-  'build_type':args[3]
+  'spectrum':spectrum,
+  'aerosol_profile':aerosol_profile,
+  'view_zenith':int(0),
+  'build_type':build_type,
+  'invars':input_variables(build_type)
   }
-  
-  try:
-    variables = input_variables(config['build_type'])
-  except:
-    print('unknown build type: '+config['build_type'])
-    sys.exit(1)
-  
-  # output directory based on user configuration
-  base_path = os.path.dirname(os.path.abspath(__file__))
-  outdir = ('LUTs/{0[sensor]}_{0[aerosol_profile]}/'
-  'viewz_{0[view_zenith]}').format(config)
-  # validation outdir is separate
-  if config['build_type'] == '--validation':
-    outdir = ('z/validation/Deterministic/vLUTs'
-    '/{0[sensor]}_{0[aerosol_profile]}/viewz_{0[view_zenith]}').format(config)
-  
-  out_path = os.path.join(base_path,outdir)
-  
-  if not os.path.exists(out_path):
-    os.makedirs(out_path)
-  os.chdir(out_path)
+   
+  # handle output directory and filename
+  IO_handler(config, args)
   
   # time check
   time0 = time.time()
   
-  for channel in config['channels']:
-    
-    config['channel'] = channel
-          
-    filename = ('{0[sensor]}_{0[aerosol_profile]}_{0[view_zenith]}_'
-                '{0[channel]}.lut').format(config)
-    
-    if os.path.isfile(filename):
-      print('LUT file already exists, skipping build for: '+filename)
-    else:
-      print('Building LUT: '+filename)
-      create_LUT(config,variables,filename)      
+  # BUILD the look up table!
+  if os.path.isfile(config['filepath']):
+    print('LUT file already exists, skipping build for: '+config['filepath'])
+  else:
+    print('Building LUT:\n'+config['filepath'])
+    build_LUT(config)
+    # .. this might take a while ..
       
-  # cumulative time check
+  # time check
   T = time.time() - time0
-  print('cumulative time: {:.1f} secs, {:.1f} mins,'
-  '{:.1f} hours'.format(T,T/60,T/3600) )
+  print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(T,T/60,T/3600) )
 
 if __name__ == '__main__':
   main()

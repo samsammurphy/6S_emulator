@@ -5,7 +5,10 @@ LUT interpolate
 Reads lookup table (.lut) files and executes a piecewise linear interpolant
 in N dimensions. 
 
-Saves the interpolator as a python pickle object with file extension (.ilut)
+Purpose: Allows discrete look up tables to be used to calulate continuous
+solutions for atmospheric correction :)
+
+Output: Pickled interpolator object with file extension (.ilut)
 
 """
 
@@ -16,54 +19,39 @@ import sys
 import time
 import re
 
+from LUT_build import permutate_invars
+
 import numpy as np
 from scipy.interpolate import LinearNDInterpolator
 
 def create_interpolator(filename):
   """
   Loads a LUT file and creates an interpolated LUT object.
-  The interpolant is constructed by triangulating the input data with Qhull
+  The interpolant is constructed by triangulating the input data using Qhull
   and performing linear barycentric interpolation on each triangle
   
   """
   
   #load LUT
   LUT = pickle.load(open(filename,"rb"))
-  
-  #read LUT
-  inputs = LUT['inputs']['permutations']
+
+  # LUT inputs (H2O, O3, etc.) and outputs (i.e. atmcorr coeffs)
+  inputs = permutate_invars(LUT['config']['invars'])
   outputs = LUT['outputs']
-  
-  #input variable permutation
-  solar_z = [i[0] for i in inputs]
-  H2O     = [i[1] for i in inputs]
-  O3      = [i[2] for i in inputs]
-  AOT     = [i[3] for i in inputs]
-  alt     = [i[4] for i in inputs]
-  
-  #output variables
-  Edir = [o[0] for o in outputs]
-  Edif = [o[1] for o in outputs]
-  tau2 = [o[2] for o in outputs]
-  Lp   = [o[3] for o in outputs]
-  
-  #convert to the correct format (i.e. an array of tubles)
-  inputs = np.array(list(zip(solar_z,H2O,O3,AOT,alt)))
-  outputs = np.array(list(zip(Edir,Edif,tau2,Lp)))
-  
+
   # piecewise linear interpolant in N dimensions
   t = time.time()
   interpolator = LinearNDInterpolator(inputs,outputs)
   print('Interpolation took {:.2f} (secs) = '.format(time.time()-t))
-  
+
   # sanity check
   i = 0
-  true   = (Edir[i],Edif[i],tau2[i],Lp[i])
-  interp = interpolator(solar_z[i],H2O[i],O3[i],AOT[i],alt[i])
-  
+  true   = (outputs[i][0],outputs[i][1])
+  interp = interpolator(inputs[i][0],inputs[i][1],inputs[i][2],inputs[i][3],inputs[i][4])
+
   print('Quick check..')
-  print('true   = {0[0]:.2f} {0[1]:.2f} {0[2]:.2f} {0[3]:.2f}'.format(true))
-  print('interp = {0[0]:.2f} {0[1]:.2f} {0[2]:.2f} {0[3]:.2f}'.format(interp))
+  print('true   = {0[0]:.2f} {0[1]:.2f}'.format(true))
+  print('interp = {0[0]:.2f} {0[1]:.2f}'.format(interp))
   
   return interpolator
 
@@ -81,7 +69,7 @@ def main():
   try:
     os.chdir(lut_path)
   except:
-    print('invalid LUT directory: ' + lut_path)
+    print('invalid directory: ' + lut_path)
     sys.exit(1)
     
   # create iLUTs directory (i.e. swap '/LUTs/' with '/iLUTs/')

@@ -244,7 +244,7 @@ def IO_handler(config,args):
 
   # update config
   config['outdir'] = outdir
-  config['filename'] = filename
+  config['filename'] = filename+'.lut'
   config['filepath'] = os.path.join(outdir,filename)
 
   return 

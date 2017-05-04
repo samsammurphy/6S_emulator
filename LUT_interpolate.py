@@ -45,11 +45,10 @@ def create_interpolator(filename):
   print('Interpolation took {:.2f} (secs) = '.format(time.time()-t))
 
   # sanity check
+  print('Quick check..')
   i = 0
   true   = (outputs[i][0],outputs[i][1])
-  interp = interpolator(inputs[i][0],inputs[i][1],inputs[i][2],inputs[i][3],inputs[i][4])
-
-  print('Quick check..')
+  interp = interpolator(inputs[i][0],inputs[i][1],inputs[i][2],inputs[i][3],inputs[i][4]) 
   print('true   = {0[0]:.2f} {0[1]:.2f}'.format(true))
   print('interp = {0[0]:.2f} {0[1]:.2f}'.format(interp))
   

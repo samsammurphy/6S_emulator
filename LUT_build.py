@@ -235,7 +235,7 @@ def IO_handler(config,args):
 
   # outdir
   base_path = os.path.dirname(os.path.abspath(__file__))
-  outdir = os.path.join(base_path,'LUTs',sensor_name,
+  outdir = os.path.join(base_path,'files','LUTs',sensor_name,
   config['aerosol_profile'],'view_zenith_{}'.format(config['view_zenith']))
   if not os.path.exists(outdir):
     print('\nCreating new output directory!\n'+outdir+'\n')

@@ -142,6 +142,16 @@ def input_variables(build_type):
 
   return build_selector[build_type]
 
+def permutate_invars(invars):
+  """
+  permutation of input variables for LUT
+  """
+  return list(product(invars['solar_zs'],
+                      invars['H2Os'],
+                      invars['O3s'],
+                      invars['AOTs'],
+                      invars['alts']))  
+
 def build_LUT(config):
   """
   Builds a lookup table for a given configuration
@@ -157,11 +167,7 @@ def build_LUT(config):
   s.geometry.day = 4   # applied from perihelion, i.e. Jan 4th.
 
   # calculate permutation of input variables
-  perms = list(product(config['invars']['solar_zs'],
-                       config['invars']['H2Os'],
-                       config['invars']['O3s'],
-                       config['invars']['AOTs'],
-                       config['invars']['alts']))  
+  perms = permutate_invars(config['invars']) 
                        
   #run 6S for each permutation
   outputs = []

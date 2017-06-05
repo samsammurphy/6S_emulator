@@ -12,7 +12,7 @@ code that is much more efficient.
 This module runs the 6S radiative transfer code via a Python wrapper, 
 Py6S: https://github.com/robintw/Py6S
 
-WARNING! It takes a long time to build look up tables (e.g. several hours),
+WARNING! It takes a long time to build look up tables (typically hours),
 i.e. there is a trade off between fast execution and long set-up time,
 fortunately this repo comes with a bunch of pre-built LUTs to save time.
 
@@ -111,7 +111,7 @@ def input_variables(build_type):
   }
   
   full = {
-    'solar_zs': np.linspace(0,60,7),  
+    'solar_zs': [0, 10, 20, 30, 40, 50, 60, 65, 70, 75],  
     'H2Os': [0, 0.25, 0.5, 1, 1.5, 2, 3, 5, 8.5],  
     'O3s': [0.0, 0.8],  
     'AOTs': [0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.25, 3],

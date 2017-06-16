@@ -1,19 +1,15 @@
-## Atmospheric correction of satellite images using 6S
+## Atmospheric correction of satellite images
 
-If you need to convert **at-sensor radiance to surface reflectance** then this repo might might be for you
+If you need to convert **at-sensor radiance to surface reflectance** then this repo might might be for you.
 
-### How does it work?
+## What is a 6S emulator
 
-We use the [6S](http://modis-sr.ltdri.org/pages/6SCode.html) radiative transfer code through a Python wrapper called [Py6S](http://py6s.readthedocs.io/en/latest/introduction.html). The project is written in Python. 
+[6S](http://modis-sr.ltdri.org/pages/6SCode.html) is a radiative transfer code used for atmospheric correction. We developed a 6S  emulator to run atmospheric correction 100x faster!!
 
-We build interpolated look up tables ([iLUTs](https://github.com/samsammurphy/6S_LUT/wiki/Interpolated-Look-up-Tables-(iLUTs))) to get the parameter values needed to [atmospherically correct](https://github.com/samsammurphy/6S_LUT/blob/master/z/jupyter_notebooks/atmcorr_example_1.ipynb) radiance measured by a satellite sensor at perihelion (i.e. January 4th). We then use a harmonic function to correct for day of year.
+## Installation
 
-### Why is this important?
+The source code and all dependencies are available in the following docker container: [DOCKER IMAGE].
 
-Radiative transfer code (e.g. 6S, MODTRAN, etc.) take a long time to execute. The use of an iLUT boost performance speeds by a few orders of magnitude with a minimal effect on accuracy (i.e. [within 0.02](https://github.com/samsammurphy/6S_LUT/wiki/Validation)). 
+## How do I use it?
 
-### What about MODTRAN?
-
-6S shows good agreement ([i.e. < 0.7 %](http://6s.ltdri.org/files/publication/Kotchenova_et_al_2006.pdf)) with MODTRAN. Some studies indicate that 6S has an edge in terms of accuracy. These include [Monte Carlo](http://6s.ltdri.org/files/publication/Kotchenova_et_al_2008.pdf) and [Ground-Truth](https://www.researchgate.net/publication/263620472_Evaluation_of_atmospheric_correction_models_and_Landsat_surface_reflectance_product_in_an_urban_coastal_environment) approaches. 
-
-NASA and the USGS use 6S for [MODIS](http://6s.ltdri.org/) and [Landsats 4-7](http://landsat.usgs.gov/CDR_LSR.php) surface reflectance products.
+Please see the examples [LINK TO EXAMPLES].

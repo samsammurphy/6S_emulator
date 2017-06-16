@@ -1,3 +1,5 @@
+## Open-source atmospheric correction 
+
 If you need to convert **radiance to surface reflectance** then this repo might might be for you.
 
 ### What is a 6S emulator?
@@ -10,6 +12,6 @@ Source code, and all dependencies, are available in the following docker contain
 
 To run the container: [CODE TO RUN CONTAINER]
 
-### How do I use it?
+### How do I use this for atmospheric correction?
 
 Please see the examples [LINK TO EXAMPLES] on how to use the 6S emulator in your docker container.

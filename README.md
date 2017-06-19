@@ -42,6 +42,7 @@ example 3: use with Google Earth Engine
 
 2) earthengine authenticate
 
-3) (optional) commit to new container to save authentication and run that instead
+3) open earthengine notebook
 
-4) open earthengine notebook
+(optional) commit to new container to save authentication and run that instead
+(optional) connect to local drive containing (i)LUTs

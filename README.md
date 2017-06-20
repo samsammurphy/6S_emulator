@@ -1,6 +1,6 @@
 ## Introduction
 
-The 6S emulator is an open-source atmospheric correction tool. It is based on the [6S](http://modis-sr.ltdri.org/pages/6SCode.html) radiative transfer model but runs **100x** faster with minimal error (i.e. within 0.5 %).
+The 6S emulator is an open-source atmospheric correction tool. It is based on the [6S](http://modis-sr.ltdri.org/pages/6SCode.html) radiative transfer model but it **runs 100x faster** with minimal additional error (i.e. < 0.5 %).
 
 This speed increase is acheived by building interpolated look-up tables. This trades set-up time for execution time. The look-up tables take a long time (i.e. hours) to build, here are some prebuilts for: [Sentinel 2](https://www.dropbox.com/s/aq873gil0ph47fm/S2A_MSI.zip?dl=1), [Landsat 8](https://www.dropbox.com/s/49ikr48d2qqwkhm/LANDSAT_OLI.zip?dl=1), [Landsat 7](https://www.dropbox.com/s/z6vv55cz5tow6tj/LANDSAT_ETM.zip?dl=1) & [Landsat 4 and 5](https://www.dropbox.com/s/uyiab5r9kl50m2f/LANDSAT_TM.zip?dl=1). You only need to build (or download) a look-up table once.
  

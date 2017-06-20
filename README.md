@@ -16,8 +16,12 @@ All dependencies are shipped in a [docker](https://www.docker.com/) container.
 
 `$ docker run -it samsammurphy/ee-python3-jupyter-atmcorr:v1.0`
 
-2) test it works 
+2) clone the repo into the container
 
-(some default test)
+`# git clone https://github.com/samsammurphy/6S_emulator`
+
+3) test it works 
+
+jupyter notebook 6S_emulator/jupyter_notebooks/atmcorr_example.ipynb --ip='*' --port=8888 --allow-root
 
 

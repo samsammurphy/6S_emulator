@@ -12,7 +12,7 @@ Interpolated look-up tables are the core of the 6S emulator. Essentially, they a
 
 ##### Quick note
 
-These installation requirements are for those building look-up tables. To use a pre-existing look-up table, all that is required are python3.x, numpy and scipy.
+The installation instructions (below) are for building look-up tables. To use a pre-existing look-up table, all that is required are python3.x, numpy and scipy.
 
 We interact with 6S through an excellent Python wrapper called [Py6S](http://py6s.readthedocs.io/en/latest/index.html) and share the same dependencies. 
 

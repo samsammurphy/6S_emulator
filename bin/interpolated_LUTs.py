@@ -30,10 +30,10 @@ class Interpolated_LUTs:
     # Earth Engine mission to Py6S sensor name
     self.py6S_sensor_names = {
       'COPERNICUS/S2':'S2A_MSI',
-      'LANDSAT/LC8_L1T':'LANDSAT_OLI',
-      'LANDSAT/LE7_L1T':'LANDSAT_ETM',
-      'LANDSAT/LT5_L1T':'LANDSAT_TM',
-      'LANDSAT/LT4_L1T':'LANDSAT_TM'
+      'LANDSAT/LC8':'LANDSAT_OLI',
+      'LANDSAT/LE7':'LANDSAT_ETM',
+      'LANDSAT/LT5':'LANDSAT_TM',
+      'LANDSAT/LT4':'LANDSAT_TM'
     }
     self.py6S_sensor = self.py6S_sensor_names[self.mission]
     

@@ -20,29 +20,4 @@ All dependencies are shipped in a [docker](https://www.docker.com/) container.
 
 (some default test)
 
-### Example usage
 
-example 1: jupyter notebook
-
-1) run the container and connect to port 8888
-
-`docker run -i -t -p 8888:8888 18f5f8bb35d0`
-
-2) open up a jupyter notebook
-
-`jupyter notebook path_to_illustrative_notebook --ip='*' --port=8888 --allow-root`
-
-example 2: connect to local drive
-
-`docker run (local drive connection)`
-
-example 3: use with Google Earth Engine
-
-1) run container
-
-2) earthengine authenticate
-
-3) open earthengine notebook
-
-(optional) commit to new container to save authentication and run that instead
-(optional) connect to local drive containing (i)LUTs

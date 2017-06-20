@@ -8,20 +8,9 @@ If you need to convert **radiance to surface reflectance** then this repo might 
 
 The emulator aims to do the same job **100x** faster!!
 
-### Installation
+### Usage
 
-All dependencies are shipped in a [docker](https://www.docker.com/) container. 
+Checkout the jupyter notebook for a basic example of atmospheric correction.
 
-1) download and run the container
-
-`$ docker run -it samsammurphy/ee-python3-jupyter-atmcorr:v1.0`
-
-2) clone the repo into the container
-
-`# git clone https://github.com/samsammurphy/6S_emulator`
-
-3) test it works 
-
-jupyter notebook 6S_emulator/jupyter_notebooks/atmcorr_example.ipynb --ip='*' --port=8888 --allow-root
 
 

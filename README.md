@@ -38,7 +38,7 @@ You could permanently add the conda-forge channel if you prefer to avoid the nee
 
 #### Alternative 2: docker
 
-You can run the following docker container with all dependencies pre-installed
+You can run the following [docker](https://www.docker.com/) container with all dependencies pre-installed
 
 `$ docker run -it samsammurphy/ee-python3-jupyter-atmcorr:v1.0`
 

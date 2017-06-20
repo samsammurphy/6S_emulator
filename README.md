@@ -10,7 +10,7 @@ The emulator aims to do the same job **100x** faster!!
 
 ### Usage
 
-Checkout the jupyter notebook for a basic example of atmospheric correction.
+The jupyter notebook has a basic example of atmospheric correction.
 
 
 

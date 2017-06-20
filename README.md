@@ -8,7 +8,7 @@ It is much more bandwidth efficient to send/receive look-up tables, and then int
 
 `$ python3 LUT_interpolate.py  path/to/LUT_directory`
 
-Interpolated look-up tables are the core of the 6S emulator. They are used to calculate atmospheric correction coefficients (a, b) which can then convert at-sensor radiance (L) to surface reflectance (ρ).
+Interpolated look-up tables are the core of the 6S emulator. Essentially, they are used to calculate atmospheric correction coefficients (a, b) which can then convert at-sensor radiance (L) to surface reflectance (ρ) as follows:
 
 ρ = (L - a) / b
 
@@ -30,7 +30,7 @@ This will create a new environment that needs to be activated.
 
 #### Alternative 1: add conda-forge channel
 
-You could permanently add the conda-forge channel if you prefer to avoid need to activating environments.
+You could permanently add the conda-forge channel if you prefer to avoid the need to (de)activate environments.
 
 `$ conda config --add channels conda-forge`
 
@@ -38,6 +38,13 @@ You could permanently add the conda-forge channel if you prefer to avoid need to
 
 #### Alternative 2: docker
 
+You can run the following docker container with all dependencies pre-installed
+
+`$ docker run -it samsammurphy/ee-python3-jupyter-atmcorr:v1.0`
+
+then clone this repository into the container
+
+`# git clone https://github.com/samsammurphy/6S_emulator`
 
 #### Alternative 3: manual install
 

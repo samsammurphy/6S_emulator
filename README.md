@@ -91,7 +91,7 @@ In code it might look something like this
 
 where a and b are the atmospheric correction coefficients at perihelion. The look-up tables are built at perihelion (i.e. January 4th) to save space because Earth's elliptical orbit can be corrected as follows:
 
-````
+```
 import math
 
 elliptical_orbit_correction = 0.03275104*math.cos(doy/59.66638337) + 0.96804905
@@ -99,6 +99,6 @@ a *= elliptical_orbit_correction
 b *= elliptical_orbit_correction
 ```
 
-the coefficients can now be used to correct radiance to surface reflectance
+Surface reflectance can then be calculated from at-sensor radiance:
 
 `surface_reflectance = (L - a) / b`

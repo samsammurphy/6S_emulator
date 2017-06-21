@@ -45,13 +45,19 @@ class Interpolated_LUTs:
       print('files directory not found, will create at:\n{}'.format(self.files_dir))
       os.makedirs(self.files_dir)
 
-    # absolute path to iLUTs directory
-    self.iLUTs_dir = os.path.join(self.files_dir,'iLUTs',self.py6S_sensor,\
-    'Continental','view_zenith_0')
-
     # absolute path to LUTs directory
     self.LUTs_dir = os.path.join(self.files_dir,'LUTs',self.py6S_sensor,\
     'Continental','view_zenith_0')
+    if not os.path.isdir(self.LUTs_dir):
+      print('LUT directory created:\n{}'.format(self.LUTs_dir))
+      os.makedirs(self.LUTs_dir)
+
+    # absolute path to iLUTs directory
+    self.iLUTs_dir = os.path.join(self.files_dir,'iLUTs',self.py6S_sensor,\
+    'Continental','view_zenith_0')
+    if not os.path.isdir(self.iLUTs_dir):
+      print('iLUT directory created:\n{}'.format(self.iLUTs_dir))
+      os.makedirs(self.iLUTs_dir)
     
     # Earth Engine Sentinel 2 bandName from Py6S bandName switch
     self.ee_sentinel2_bandNames = {

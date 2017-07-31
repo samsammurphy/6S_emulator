@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of an atmospheric correction demonstration using
-# Py6s (a Python wrapper for the 6S radiative transfer code)
-#
-# Intended audience: Tyler Erickson (Mountain View, CA)
-#
-# Intended purpose: Demonstrate that Py6S can be used to atmopsherically
-# correct imagery from any given sensor (e.g. Sentinel 2, ASTER, etc.)
+# Collection of astronomical parameters useful for atmospheric correction
 
 import numpy as np
 

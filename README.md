@@ -26,7 +26,7 @@ This will create a new environment that needs to be activated.
 
 #### Alternative 1: add conda-forge channel
 
-You could permanently add the conda-forge channel if you prefer to avoid (de)activate environments.
+You could permanently add the conda-forge channel if you prefer to avoid (de)activating environments.
 
 `$ conda config --add channels conda-forge`
 
